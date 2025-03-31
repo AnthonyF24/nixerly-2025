@@ -2,102 +2,121 @@
 
 ## Layout Structure
 
-- **Portfolio-Driven Homepage:**  
-  Visually engaging homepage emphasizing professional portfolios with large, compelling images/videos and concise profile summaries.
+- **Home (Landing) Page:**  
+  Welcomes users with a clear value proposition, a hero image or video showcasing real professionals, and brief explanations of how Nixerly works for both professionals and businesses. Includes CTAs to **“Sign Up as a Professional”** and **“Hire Professionals.”**
 
-- **Interactive Grid:**  
-  Clean, dynamic grid layout highlighting profiles, clearly displaying professional skills, certifications, and availability status.
+- **Contact Page:**  
+  Clean and simple layout with a contact form, business contact details, links to social media, and optional map embed.
 
-- **Intuitive Navigation:**  
-  Top navigation bar and responsive side menu clearly structured into:
-  - Profile
-  - Portfolio
-  - Job Board
-  - Courses
-  - Messages
-  - Settings
+- **Login/Sign Up (Top-Right):**  
+  Positioned consistently on all public pages. Modal or page-based login system with user type selection (Professional / Business).
+
+- **Authenticated Dashboard Layout (Post-Login):**  
+  - Professionals: Profile setup widget, recent job matches, portfolio tools, AI suggestions.
+  - Businesses: Candidate search bar, job posting management, recommendation widgets.
+
+- **Restricted Areas:**  
+  Sections like **“Find Professionals”** and **“Job Board”** are hidden from unauthenticated users. Users are prompted to log in or sign up when attempting access.
+
+---
 
 ## Core Components
 
-- **Interactive Portfolio Galleries:**  
-  Professionals easily upload images/videos showcasing projects, each with brief, descriptive text overlays.
+- **Professional Dashboard:**
+  - Profile creation interface
+  - Certification upload
+  - Portfolio upload and management
+  - Availability toggle
+  - Shareable profile URL
 
-- **Professional Cards:**  
-  Each card displays:
-  - Name
-  - Trade specialization
-  - Location
-  - Certifications
-  - Availability status
-  - One-click WhatsApp/Email buttons
+- **Business Dashboard:**
+  - Professional grid/list with filters
+  - Job posting form
+  - Candidate contact options (WhatsApp/Email)
 
-- **Visual Search & Filtering (for businesses):**  
-  Filters by:
-  - Location
-  - Trade
-  - Certifications
-  - Availability
-  - Experience
+- **AI Assistant:**
+  - Profile improvement suggestions
+  - Keyword enhancements
+  - Recommended courses or certifications
 
-- **AI-Driven Enhancements:**  
-  Dynamic profile tips, keyword optimizations, and course suggestions via embedded AI assistant.
+- **Job Board (Authenticated Only):**
+  - List and map views
+  - Filter by role, location, skillset, availability
+
+---
 
 ## Interaction Patterns
 
-- **Drag-and-Drop Uploads:**  
-  Used for certifications, images, and video portfolio items.
+- **Public Site:**
+  - Scroll-based navigation
+  - Clear CTAs throughout
+  - Interactive contact form with validation
 
-- **Hover & Click Actions:**  
-  Hover reveals profile details; click expands full profile view.
+- **Login/Sign-Up Flow:**
+  - Email/password login or SSO (Google/LinkedIn)
+  - User-type selector during signup
 
-- **Direct Contact Buttons:**  
-  WhatsApp and Email buttons featured prominently on cards and full profile pages.
+- **Dashboards:**
+  - Sidebar navigation
+  - Hover states on cards
+  - Drag-and-drop file uploads
+  - Profile progress bar
 
-- **Carousel & Grid Views:**  
-  Toggle between image carousel (project view) and grid layout (search/browse).
+---
 
 ## Visual Design Elements & Color Scheme
 
-- **Primary Colors:**  
-  - Background: White  
-  - Accents: Modern teal, vibrant purple, contemporary blue
+- **Palette:**
+  - Background: White
+  - Accents: Teal, vibrant purple, and contemporary blue
+  - Success/verified: Green
+  - Alerts/errors: Red
 
-- **Status/Verification:**  
-  - Visual indicators for availability  
-  - Badges for verified users
+- **Design Features:**
+  - Card-based UI with shadows and rounded corners
+  - Interactive hover states
+  - Progress bars (e.g. profile completeness)
 
-- **Progress Indicators:**  
-  - Bars for profile completion, certifications, and course progress
+- **Verification:**
+  - Badges for certified professionals
+  - Icons indicating availability
+
+---
 
 ## Mobile, Web App, Desktop Considerations
 
-- **Web-First:**  
-  Optimized for desktop browsers with high-resolution visuals and interactive elements.
+- **Web-First Focus:**
+  - Designed for desktop browser users
+  - Full-width layouts, sidebar navigation, and modals
 
-- **Mobile-Friendly:**  
-  Simplified interface for mobile with emphasis on browsing and direct communication.
+- **Responsive Design:**
+  - Mobile: Collapsed menus, floating action buttons
+  - Tablet: Hybrid layout adapting desktop features
 
-- **Responsive Design:**  
-  Adjusts seamlessly for all screen sizes, including tablets.
+---
 
 ## Typography
 
-- **Headings:**  
-  `Raleway` – clean and modern
+- **Headings:** `Open Sans`  
+- **Body Text:** `Roboto`  
+  Clean, legible fonts with clear hierarchy and size scaling across devices.
 
-- **Body Text:**  
-  `Roboto` – readable, professional, consistent
+---
 
 ## Accessibility
 
-- **Alt Text:**  
-  Included for all portfolio media
+- **Image Alt Text:**  
+  All uploaded portfolio content supports custom alt text.
 
 - **Color Contrast:**  
-  Compliant with WCAG standards for readability
+  Teal, purple, and blue used with WCAG-compliant contrast ratios.
+
+- **ARIA & Labels:**  
+  Full support for ARIA roles, input labels, and status messaging.
 
 - **Keyboard Navigation:**  
-  All key elements accessible via keyboard
+  All features accessible via tab and keyboard navigation.
 
-- **Responsive Adjustments:**  
-  Supports font scaling, mobile text optimization, and structured layouts for screen readers
+- **Responsive Readability:**  
+  Text scales and layouts adjust for assistive technologies and smaller screens.
+
