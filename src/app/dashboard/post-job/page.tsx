@@ -1,27 +1,23 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import JobPostForm from "@/components/business/JobPostForm";
 import { useAppStore } from "@/lib/store";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { dummyBusinesses } from "@/lib/dummy-data";
 
 const PostJobPage = () => {
-  const { isAuthenticated, userType, business } = useAppStore();
+  const { setBusiness, setUserType, setIsAuthenticated } = useAppStore();
   const router = useRouter();
   
-  // Redirect if not authenticated or not a business
-  if (!isAuthenticated) {
-    return redirect("/auth/login");
-  }
-  
-  if (userType !== "business") {
-    return redirect("/dashboard");
-  }
-  
-  if (!business) {
-    return redirect("/dashboard/profile");
-  }
+  // For demo purposes, always set as authenticated business user
+  useEffect(() => {
+    // Set authenticated state and business user type
+    setIsAuthenticated(true);
+    setBusiness(dummyBusinesses[0]);
+    setUserType("business");
+  }, [setBusiness, setUserType, setIsAuthenticated]);
   
   const handleSuccess = () => {
     router.push("/dashboard/manage-jobs");

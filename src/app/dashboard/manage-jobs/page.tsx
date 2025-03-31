@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useAppStore } from "@/lib/store";
 import { redirect } from "next/navigation";
@@ -12,28 +12,24 @@ import { FileEdit, Archive, Plus, CheckCircle, Trash2, RefreshCw } from "lucide-
 import { IJob } from "@/lib/store";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Link from "next/link";
+import { dummyBusinesses } from "@/lib/dummy-data";
 
 const ManageJobsPage = () => {
-  const { isAuthenticated, userType, business, jobs, updateJob } = useAppStore();
+  const { business, jobs, updateJob, setBusiness, setUserType, setIsAuthenticated } = useAppStore();
   const [selectedJob, setSelectedJob] = useState<IJob | null>(null);
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<"open" | "close" | "delete" | "reopen">("close");
   
-  // Redirect if not authenticated or not a business
-  if (!isAuthenticated) {
-    return redirect("/auth/login");
-  }
-  
-  if (userType !== "business") {
-    return redirect("/dashboard");
-  }
-  
-  if (!business) {
-    return redirect("/dashboard/profile");
-  }
+  // For demo purposes, we now assume we're already authenticated as a business
+  useEffect(() => {
+    // Set authenticated state and business user type
+    setIsAuthenticated(true);
+    setBusiness(dummyBusinesses[0]);
+    setUserType("business");
+  }, [setBusiness, setUserType, setIsAuthenticated]);
   
   // Filter jobs for this business
-  const businessJobs = jobs.filter(job => job.businessId === business.id);
+  const businessJobs = jobs.filter(job => job.businessId === (business?.id || 'b1'));
   const openJobs = businessJobs.filter(job => job.status === "open");
   const draftJobs = businessJobs.filter(job => job.status === "draft");
   const closedJobs = businessJobs.filter(job => job.status === "closed");

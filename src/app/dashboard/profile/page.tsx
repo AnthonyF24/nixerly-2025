@@ -1,19 +1,35 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ProfileForm } from "@/components/professional/ProfileForm";
 import { BusinessProfileForm } from "@/components/business/BusinessProfileForm";
 import { useAppStore } from "@/lib/store";
-import { redirect } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { dummyProfessionals, dummyBusinesses } from "@/lib/dummy-data";
 
 const ProfilePage = () => {
-  const { isAuthenticated, userType } = useAppStore();
+  const { userType, setProfessional, setBusiness, setUserType, setIsAuthenticated } = useAppStore();
   
-  // Redirect if not authenticated
-  if (!isAuthenticated) {
-    return redirect("/auth/login");
-  }
+  const searchParams = useSearchParams();
+  const userTypeParam = searchParams.get('type');
+  
+  // For demo purposes, set authentication and user type
+  useEffect(() => {
+    // Set authenticated state
+    setIsAuthenticated(true);
+    
+    // Use URL parameter if provided, otherwise keep existing userType or default to business
+    const typeToUse = userTypeParam || userType || 'business';
+    
+    if (typeToUse === 'professional') {
+      setProfessional(dummyProfessionals[0]);
+      setUserType("professional");
+    } else {
+      setBusiness(dummyBusinesses[0]);
+      setUserType("business");
+    }
+  }, [userTypeParam, userType, setProfessional, setBusiness, setUserType, setIsAuthenticated]);
 
   return (
     <DashboardLayout>

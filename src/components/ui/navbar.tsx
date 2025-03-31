@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useAppStore } from '@/lib/store';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAuthenticated, userType, professional, business } = useAppStore();
   
   const handleToggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -17,6 +19,12 @@ const Navbar = () => {
       handleToggleMenu();
     }
   };
+
+  // Check if business user has paid subscription
+  const hasBusinessPaidSubscription = isAuthenticated && userType === 'business' && business?.verified;
+  
+  // Check if professional user has verified account
+  const isProfessionalVerified = isAuthenticated && userType === 'professional' && professional?.verified;
   
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -36,18 +44,27 @@ const Navbar = () => {
               >
                 Home
               </Link>
-              <Link 
-                href="/professionals" 
-                className="text-gray-700 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Find Professionals
-              </Link>
-              <Link 
-                href="/jobs" 
-                className="text-gray-700 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Job Board
-              </Link>
+              
+              {/* Only show Find Professionals to business users with paid subscription */}
+              {hasBusinessPaidSubscription && (
+                <Link 
+                  href="/dashboard/find-professionals" 
+                  className="text-gray-700 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Find Professionals
+                </Link>
+              )}
+              
+              {/* Only show Job Board to verified professionals */}
+              {isProfessionalVerified && (
+                <Link 
+                  href="/dashboard/jobs" 
+                  className="text-gray-700 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Job Board
+                </Link>
+              )}
+              
               <Link 
                 href="/contact" 
                 className="text-gray-700 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-md text-sm font-medium transition-colors"
@@ -121,20 +138,29 @@ const Navbar = () => {
           >
             Home
           </Link>
-          <Link 
-            href="/professionals" 
-            className="block text-gray-700 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-md text-base font-medium transition-colors"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Find Professionals
-          </Link>
-          <Link 
-            href="/jobs" 
-            className="block text-gray-700 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-md text-base font-medium transition-colors"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Job Board
-          </Link>
+          
+          {/* Only show Find Professionals to business users with paid subscription */}
+          {hasBusinessPaidSubscription && (
+            <Link 
+              href="/dashboard/find-professionals" 
+              className="block text-gray-700 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-md text-base font-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Find Professionals
+            </Link>
+          )}
+          
+          {/* Only show Job Board to verified professionals */}
+          {isProfessionalVerified && (
+            <Link 
+              href="/dashboard/jobs" 
+              className="block text-gray-700 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-md text-base font-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Job Board
+            </Link>
+          )}
+          
           <Link 
             href="/contact" 
             className="block text-gray-700 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-md text-base font-medium transition-colors"

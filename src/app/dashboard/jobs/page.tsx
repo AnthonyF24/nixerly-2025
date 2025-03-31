@@ -1,24 +1,22 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useAppStore } from "@/lib/store";
-import { redirect } from "next/navigation";
 import JobFilters from "@/components/jobs/JobFilters";
 import JobList from "@/components/jobs/JobList";
+import { dummyProfessionals } from "@/lib/dummy-data";
 
 const JobBoardPage = () => {
-  const { isAuthenticated, userType } = useAppStore();
+  const { setProfessional, setUserType, setIsAuthenticated } = useAppStore();
   
-  // Redirect if not authenticated
-  if (!isAuthenticated) {
-    return redirect("/auth/login");
-  }
-  
-  // If business user, redirect to job management page
-  if (userType === "business") {
-    return redirect("/dashboard/manage-jobs");
-  }
+  // For demo purposes, always set as authenticated professional user
+  useEffect(() => {
+    // Set authenticated state and professional user type
+    setIsAuthenticated(true);
+    setProfessional(dummyProfessionals[0]);
+    setUserType("professional");
+  }, [setProfessional, setUserType, setIsAuthenticated]);
 
   return (
     <DashboardLayout>
