@@ -1,0 +1,271 @@
+import { IBusiness, ICertification, IJob, IPortfolioItem, IProfessional } from "./store";
+
+// Sample professionals
+export const dummyProfessionals: IProfessional[] = [
+  {
+    id: "p1",
+    name: "Alex Johnson",
+    email: "alex.johnson@example.com",
+    phone: "+1234567890",
+    bio: "Full-stack developer with 6+ years of experience in React, Node.js, and AWS.",
+    skills: ["React", "Node.js", "AWS", "TypeScript", "MongoDB"],
+    certifications: [
+      {
+        id: "c1",
+        name: "AWS Certified Solutions Architect",
+        issuer: "Amazon Web Services",
+        date: "2022-05-15",
+        validUntil: "2025-05-15",
+        verified: true,
+        documentUrl: "/certs/aws-cert.pdf",
+      },
+      {
+        id: "c2",
+        name: "MongoDB Certified Developer",
+        issuer: "MongoDB Inc.",
+        date: "2021-08-20",
+        verified: true,
+      },
+    ],
+    portfolio: [
+      {
+        id: "port1",
+        title: "E-commerce Platform",
+        description: "Built a full-stack e-commerce platform with Next.js, MongoDB, and Stripe integration.",
+        imageUrl: "/portfolio/ecommerce.jpg",
+        altText: "Screenshot of e-commerce website dashboard",
+        tags: ["Next.js", "MongoDB", "Stripe", "Tailwind CSS"],
+        date: "2023-01-15",
+      },
+      {
+        id: "port2",
+        title: "Task Management App",
+        description: "Developed a collaborative task management tool for remote teams.",
+        imageUrl: "/portfolio/taskapp.jpg",
+        altText: "Task management application interface",
+        tags: ["React", "Firebase", "Material UI"],
+        date: "2022-11-05",
+      },
+    ],
+    availability: true,
+    location: "San Francisco, CA",
+    profileComplete: 95,
+    verified: true,
+  },
+  {
+    id: "p2",
+    name: "Samantha Lee",
+    email: "samantha.lee@example.com",
+    bio: "UX/UI designer specializing in mobile app interfaces and user research.",
+    skills: ["UI Design", "User Research", "Figma", "Adobe XD", "Prototyping"],
+    certifications: [
+      {
+        id: "c3",
+        name: "Google UX Design Certificate",
+        issuer: "Google",
+        date: "2022-02-10",
+        verified: true,
+      },
+    ],
+    portfolio: [
+      {
+        id: "port3",
+        title: "Health Tracking App Redesign",
+        description: "Redesigned UI for a health tracking app, increasing user engagement by 35%.",
+        imageUrl: "/portfolio/health-app.jpg",
+        altText: "Health app UI redesign comparison",
+        tags: ["Mobile Design", "UI/UX", "Figma"],
+        date: "2023-02-20",
+      },
+    ],
+    availability: false,
+    location: "New York, NY",
+    profileComplete: 85,
+    verified: true,
+  },
+  {
+    id: "p3",
+    name: "Michael Chen",
+    email: "michael.chen@example.com",
+    phone: "+1987654321",
+    bio: "DevOps engineer with expertise in cloud infrastructure and CI/CD pipelines.",
+    skills: ["Docker", "Kubernetes", "AWS", "Jenkins", "Terraform"],
+    certifications: [
+      {
+        id: "c4",
+        name: "Kubernetes Administrator (CKA)",
+        issuer: "Cloud Native Computing Foundation",
+        date: "2022-09-30",
+        validUntil: "2025-09-30",
+        verified: true,
+      },
+    ],
+    portfolio: [
+      {
+        id: "port4",
+        title: "CI/CD Pipeline Automation",
+        description: "Implemented automated deployment pipelines for a microservices architecture.",
+        imageUrl: "/portfolio/cicd.jpg",
+        altText: "CI/CD pipeline diagram",
+        tags: ["Jenkins", "Docker", "Kubernetes", "AWS"],
+        date: "2023-03-15",
+      },
+    ],
+    availability: true,
+    location: "Austin, TX",
+    profileComplete: 90,
+    verified: false,
+  },
+];
+
+// Sample businesses
+export const dummyBusinesses: IBusiness[] = [
+  {
+    id: "b1",
+    name: "TechInnovate Solutions",
+    email: "contact@techinnovate.example",
+    phone: "+1122334455",
+    description: "Software development agency specializing in custom enterprise solutions.",
+    industry: ["Technology", "Software Development", "Enterprise Solutions"],
+    location: "San Francisco, CA",
+    verified: true,
+  },
+  {
+    id: "b2",
+    name: "DesignWorks Studio",
+    email: "hello@designworks.example",
+    description: "Creative design studio focusing on branding and digital experiences.",
+    industry: ["Design", "Branding", "Digital Marketing"],
+    location: "New York, NY",
+    verified: true,
+  },
+  {
+    id: "b3",
+    name: "CloudScale Systems",
+    email: "info@cloudscale.example",
+    phone: "+1555666777",
+    description: "Cloud infrastructure and DevOps consulting firm.",
+    industry: ["Cloud Services", "DevOps", "IT Consulting"],
+    location: "Seattle, WA",
+    verified: false,
+  },
+];
+
+// Sample jobs
+export const dummyJobs: IJob[] = [
+  {
+    id: "j1",
+    title: "Senior React Developer",
+    description: "Looking for an experienced React developer to join our team for a 6-month project building a new customer portal.",
+    businessId: "b1",
+    businessName: "TechInnovate Solutions",
+    location: "San Francisco, CA (Remote OK)",
+    skills: ["React", "TypeScript", "Redux", "REST APIs"],
+    datePosted: "2023-04-01",
+    deadline: "2023-04-30",
+    status: "open",
+  },
+  {
+    id: "j2",
+    title: "UX/UI Designer for Mobile App",
+    description: "Seeking a talented UX/UI designer to redesign our mobile application interface and improve user experience.",
+    businessId: "b2",
+    businessName: "DesignWorks Studio",
+    location: "New York, NY (On-site)",
+    skills: ["UI Design", "Mobile Design", "Figma", "User Testing"],
+    datePosted: "2023-03-28",
+    deadline: "2023-04-20",
+    status: "open",
+  },
+  {
+    id: "j3",
+    title: "DevOps Engineer - Kubernetes Specialist",
+    description: "Looking for a DevOps engineer with strong Kubernetes experience to help optimize our container orchestration infrastructure.",
+    businessId: "b3",
+    businessName: "CloudScale Systems",
+    location: "Remote",
+    skills: ["Kubernetes", "Docker", "CI/CD", "AWS or Azure"],
+    datePosted: "2023-03-25",
+    deadline: "2023-04-25",
+    status: "open",
+  },
+  {
+    id: "j4",
+    title: "Frontend Developer (Contract)",
+    description: "3-month contract role for a frontend developer to help build new features for our web application.",
+    businessId: "b1",
+    businessName: "TechInnovate Solutions",
+    location: "Remote",
+    skills: ["JavaScript", "HTML", "CSS", "React"],
+    datePosted: "2023-03-20",
+    status: "closed",
+  },
+  {
+    id: "j5",
+    title: "Cloud Migration Specialist",
+    description: "Help our clients migrate their infrastructure to the cloud with a focus on AWS services.",
+    businessId: "b3",
+    businessName: "CloudScale Systems",
+    location: "Seattle, WA (Hybrid)",
+    skills: ["AWS", "Cloud Migration", "Infrastructure as Code"],
+    datePosted: "2023-04-02",
+    status: "draft",
+  },
+];
+
+// Skills list for filters and selects
+export const skillsList = [
+  "React", "Next.js", "Angular", "Vue.js", "JavaScript", "TypeScript",
+  "Node.js", "Express", "Python", "Django", "Flask", "Ruby", "Rails",
+  "PHP", "Laravel", "Java", "Spring", "Go", "C#", ".NET",
+  "AWS", "Azure", "Google Cloud", "Firebase", "Heroku",
+  "Docker", "Kubernetes", "Jenkins", "GitLab CI/CD", "GitHub Actions",
+  "MongoDB", "PostgreSQL", "MySQL", "SQL Server", "Redis", "Elasticsearch",
+  "GraphQL", "REST API", "Microservices", "Serverless",
+  "UI Design", "UX Design", "UI/UX", "Figma", "Adobe XD", "Sketch",
+  "Tailwind CSS", "Bootstrap", "Material UI", "SASS/SCSS", "CSS",
+  "Mobile Development", "React Native", "Flutter", "iOS", "Android",
+  "DevOps", "SRE", "Terraform", "Infrastructure as Code",
+  "Machine Learning", "AI", "Data Science", "Data Analysis",
+  "Project Management", "Agile", "Scrum", "Product Management"
+];
+
+// Locations list
+export const locationsList = [
+  "San Francisco, CA",
+  "New York, NY",
+  "Austin, TX",
+  "Seattle, WA",
+  "Boston, MA",
+  "Chicago, IL",
+  "Los Angeles, CA",
+  "Denver, CO",
+  "Miami, FL",
+  "Atlanta, GA",
+  "Dallas, TX",
+  "Portland, OR",
+  "Washington, DC",
+  "Remote"
+];
+
+// Industries list
+export const industriesList = [
+  "Technology",
+  "Software Development",
+  "Design",
+  "Marketing",
+  "Finance",
+  "Healthcare",
+  "Education",
+  "E-commerce",
+  "Media",
+  "Entertainment",
+  "Consulting",
+  "Real Estate",
+  "Manufacturing",
+  "Retail",
+  "Transportation",
+  "Energy",
+  "Hospitality",
+  "Non-profit"
+]; 
