@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { dummyProfessionals, dummyJobs } from './dummy-data';
 
 // Professional types
 export interface IProfessional {
@@ -8,8 +9,8 @@ export interface IProfessional {
   phone?: string;
   bio?: string;
   skills: string[];
-  certifications: ICertification[];
-  portfolio: IPortfolioItem[];
+  certifications?: ICertification[];
+  portfolio?: IPortfolioItem[];
   availability: boolean;
   location?: string;
   profileComplete: number;
@@ -30,9 +31,9 @@ export interface IPortfolioItem {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
-  altText: string;
-  tags: string[];
+  imageUrl?: string;
+  altText?: string;
+  tags?: string[];
   date: string;
 }
 
@@ -58,7 +59,7 @@ export interface IJob {
   skills: string[];
   datePosted: string;
   deadline?: string;
-  status: 'open' | 'closed' | 'draft';
+  status: 'open' | 'closed' | 'draft' | 'applied';
 }
 
 // Filter types
@@ -139,3 +140,25 @@ export const useAppStore = create<AppState>((set) => ({
     isAuthenticated: false,
   }),
 })); 
+
+// Helper hook for the Professional Dashboard to access required data
+export const useProfessionalData = () => {
+  const { professional, jobs } = useAppStore();
+  
+  // Use the first dummy professional if none is set in the store
+  const activeProfessional = professional || dummyProfessionals[0];
+  
+  // Get certifications and portfolio from the professional
+  const certifications = activeProfessional?.certifications || [];
+  const portfolio = activeProfessional?.portfolio || [];
+  
+  // Use dummy jobs if none are set in the store
+  const availableJobs = jobs.length > 0 ? jobs : dummyJobs;
+  
+  return {
+    professional: activeProfessional,
+    jobs: availableJobs,
+    certifications,
+    portfolio
+  };
+}; 
