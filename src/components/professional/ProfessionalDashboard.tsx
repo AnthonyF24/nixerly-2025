@@ -1,632 +1,508 @@
-import React from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAppStore } from "@/lib/store";
-import { dummyJobs } from "@/lib/dummy-data";
-import { 
-  CheckCircle, 
-  Clock, 
-  Lightbulb, 
-  Star, 
-  Award, 
-  CalendarDays, 
-  GraduationCap, 
-  Briefcase, 
-  Activity, 
-  TrendingUp, 
-  BarChart,
-  ArrowRight,
-  MapPin,
-  User,
-  Users,
-  ExternalLink 
-} from "lucide-react";
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { MapPin, Wrench, Award, Briefcase, Clock, ArrowRight, TrendingUp, AlertCircle, Activity } from "lucide-react";
+import { useProfessionalData } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
-export const ProfessionalDashboard = () => {
-  const { professional } = useAppStore();
+export function ProfessionalDashboard() {
+  const { professional, jobs, certifications, portfolio } = useProfessionalData();
+  const router = useRouter();
+  const [activeView, setActiveView] = useState<"jobs" | "certifications" | "portfolio">("jobs");
 
-  if (!professional) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-8 bg-muted/30 rounded-lg border border-dashed">
-        <User className="h-12 w-12 text-muted-foreground mb-4" />
-        <p className="text-muted-foreground text-lg font-medium">Please complete your profile to see your dashboard.</p>
-        <Button className="mt-4" asChild>
-          <Link href="/dashboard/profile" tabIndex={0}>Create Profile</Link>
-        </Button>
-      </div>
-    );
-  }
+  // Function to get initials from name
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
 
-  // Filter jobs that match the professional's skills
-  const matchingJobs = dummyJobs
-    .filter(job => job.status === "open")
-    .filter(job => job.skills.some(skill => professional.skills.includes(skill)))
-    .slice(0, 3);
+  // Calculate profile completion percentage
+  const calculateProfileCompletion = () => {
+    let completed = 0;
+    let total = 6; // Total number of profile sections
 
-  // Suggested skills based on job market demand
-  const suggestedSkills = ["TypeScript", "Docker", "AWS Lambda", "React Native"];
+    if (professional.name) completed++;
+    if (professional.bio && professional.bio.length > 10) completed++;
+    if (professional.skills && professional.skills.length > 0) completed++;
+    if (professional.location) completed++;
+    if (certifications && certifications.length > 0) completed++;
+    if (portfolio && portfolio.length > 0) completed++;
 
-  // Profile completion tasks
-  const tasks = [
-    { 
-      id: "profile", 
-      label: "Complete your profile", 
-      completed: professional.bio !== undefined,
-      href: "/dashboard/profile",
-      icon: User
-    },
-    { 
-      id: "certifications", 
-      label: "Upload certifications", 
-      completed: professional.certifications.length > 0,
-      href: "/dashboard/profile#certifications",
-      icon: GraduationCap
-    },
-    { 
-      id: "portfolio", 
-      label: "Add portfolio items", 
-      completed: professional.portfolio.length > 0,
-      href: "/dashboard/portfolio",
-      icon: Briefcase
-    },
-    { 
-      id: "location", 
-      label: "Set your location", 
-      completed: professional.location !== undefined,
-      href: "/dashboard/profile",
-      icon: MapPin
+    return Math.round((completed / total) * 100);
+  };
+
+  const profileCompletion = calculateProfileCompletion();
+
+  // Get remaining profile tasks
+  const getProfileTasks = () => {
+    const tasks = [];
+    
+    if (!professional.bio || professional.bio.length <= 10) {
+      tasks.push({ id: "bio", title: "Add a professional bio", completed: false });
+    } else {
+      tasks.push({ id: "bio", title: "Add a professional bio", completed: true });
     }
-  ];
+    
+    if (!professional.skills || professional.skills.length === 0) {
+      tasks.push({ id: "skills", title: "Add your construction skills", completed: false });
+    } else {
+      tasks.push({ id: "skills", title: "Add your construction skills", completed: true });
+    }
+    
+    if (!professional.location) {
+      tasks.push({ id: "location", title: "Add your location", completed: false });
+    } else {
+      tasks.push({ id: "location", title: "Add your location", completed: true });
+    }
+    
+    if (!certifications || certifications.length === 0) {
+      tasks.push({ id: "certifications", title: "Add certifications", completed: false });
+    } else {
+      tasks.push({ id: "certifications", title: "Add certifications", completed: true });
+    }
+    
+    if (!portfolio || portfolio.length === 0) {
+      tasks.push({ id: "portfolio", title: "Add portfolio items", completed: false });
+    } else {
+      tasks.push({ id: "portfolio", title: "Add portfolio items", completed: true });
+    }
+    
+    return tasks;
+  };
 
-  // Calculate completion percentage
-  const completedTasks = tasks.filter(task => task.completed).length;
-  const completionPercentage = (completedTasks / tasks.length) * 100;
+  const profileTasks = getProfileTasks();
+
+  // Filter jobs relevant to professional based on skills
+  const relevantJobs = jobs.filter((job) => {
+    if (!professional.skills || professional.skills.length === 0) return false;
+    return job.skills.some((skill) => professional.skills.includes(skill));
+  });
 
   return (
-    <div className="space-y-8">
-      <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-6 shadow-sm">
-        <div className="flex flex-col md:flex-row gap-6 md:items-center md:justify-between">
+    <div className="container mx-auto py-8 space-y-6">
+      {/* Header with color gradient */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-500 rounded-lg p-6 shadow-lg">
+        <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-primary/20 shadow-md">
-              <AvatarImage src={professional.avatarUrl} alt={professional.name} />
-              <AvatarFallback className="bg-primary/5 text-primary text-lg">
-                {professional.name?.charAt(0) || 'P'}
+            <Avatar className="h-20 w-20 border-2 border-white">
+              <AvatarImage src="/avatars/professional.png" alt={professional.name} />
+              <AvatarFallback className="text-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                {getInitials(professional.name)}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                {professional.name}
+              <h1 className="text-2xl font-bold text-white tracking-tight">
+                {professional.name || "Professional"}
               </h1>
-              <p className="text-muted-foreground flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                <span>{professional.title || "Professional"}</span>
-                {professional.location && (
-                  <>
-                    <span className="mx-1">•</span>
-                    <MapPin className="h-3 w-3" />
-                    <span>{professional.location}</span>
-                  </>
+              {professional.location && (
+                <div className="flex items-center text-white/90 mt-1">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  <span>{professional.location}</span>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2 mt-2">
+                {professional.skills && professional.skills.slice(0, 3).map((skill) => (
+                  <Badge key={skill} className="bg-white/20 hover:bg-white/30 text-white">
+                    {skill}
+                  </Badge>
+                ))}
+                {professional.skills && professional.skills.length > 3 && (
+                  <Badge className="bg-white/20 hover:bg-white/30 text-white">
+                    +{professional.skills.length - 3} more
+                  </Badge>
                 )}
-              </p>
+              </div>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
-            <Badge 
-              variant={professional.availability ? "default" : "outline"}
-              className={cn(
-                "text-sm py-1.5 px-3 rounded-full flex items-center gap-1.5",
-                professional.availability 
-                  ? "bg-green-100 text-green-800 hover:bg-green-200 border-green-200" 
-                  : "bg-gray-100 text-gray-800 hover:bg-gray-200 border-gray-200"
-              )}
-            >
-              <span className={cn(
-                "h-2 w-2 rounded-full",
-                professional.availability ? "bg-green-500" : "bg-gray-500"
-              )} />
-              {professional.availability ? "Available for Work" : "Unavailable"}
-            </Badge>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="shadow-sm border-primary/20 hover:bg-primary/5"
-              asChild
-            >
-              <Link 
-                href="/dashboard/profile#availability" 
-                tabIndex={0}
-                className="flex items-center gap-1"
-                aria-label="Update availability status"
-              >
-                Update Status
-                <ArrowRight className="h-3 w-3 ml-1" />
-              </Link>
-            </Button>
-          </div>
+          
+          <Button 
+            className="bg-white hover:bg-white/90 text-blue-700"
+            onClick={() => router.push("/professional/profile")}
+          >
+            Edit Profile
+          </Button>
         </div>
       </div>
 
-      {professional.profileComplete < 100 && (
-        <Card className="overflow-hidden border-primary/10 shadow-md">
-          <CardHeader className="pb-3 bg-primary/5">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Activity className="h-5 w-5 text-primary" />
-              Complete Your Profile
-            </CardTitle>
-            <CardDescription className="text-base">
-              Your profile is <span className="font-medium text-primary">{completionPercentage.toFixed(0)}%</span> complete. 
-              Complete all tasks to increase your visibility to potential clients.
-            </CardDescription>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Profile Completion Card */}
+        <Card className="md:col-span-1 border border-slate-200 shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-semibold">Profile Completion</CardTitle>
+            <CardDescription>Complete your profile to attract more job opportunities</CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
-            <Progress 
-              value={completionPercentage} 
-              className="h-2.5 bg-primary/10" 
-              aria-label="Profile completion progress"
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-              {tasks.map(task => {
-                const Icon = task.icon;
-                return (
-                  <div 
-                    key={task.id}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg transition-colors",
-                      task.completed ? "bg-green-50" : "bg-muted/50 hover:bg-muted"
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Profile Status</span>
+                <span className="font-medium">{profileCompletion}%</span>
+              </div>
+              <Progress value={profileCompletion} className="h-2 bg-slate-200" indicatorClassName="bg-gradient-to-r from-blue-500 via-purple-500 to-teal-500" />
+            </div>
+            
+            <div className="space-y-3">
+              {profileTasks.map((task) => (
+                <div key={task.id} className="flex items-center gap-2">
+                  <div className={cn(
+                    "h-5 w-5 rounded-full flex items-center justify-center",
+                    task.completed 
+                      ? "bg-gradient-to-r from-blue-500 to-teal-500" 
+                      : "border border-slate-300"
+                  )}>
+                    {task.completed && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
                     )}
-                  >
-                    <div className="flex-shrink-0">
-                      <div className={cn(
-                        "h-9 w-9 rounded-full flex items-center justify-center",
-                        task.completed ? "bg-green-100" : "bg-muted"
-                      )}>
-                        <Icon className={cn(
-                          "h-5 w-5",
-                          task.completed ? "text-green-600" : "text-muted-foreground"
-                        )} />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <Link 
-                        href={task.href}
-                        className={cn(
-                          "text-sm font-medium hover:underline flex items-center gap-1",
-                          task.completed ? "text-green-700" : "text-muted-foreground"
-                        )}
-                        tabIndex={0}
-                      >
-                        {task.label}
-                        {!task.completed && <ArrowRight className="h-3 w-3 ml-1" />}
-                      </Link>
-                      {task.completed && (
-                        <p className="text-xs text-green-600 mt-0.5">Completed</p>
-                      )}
-                    </div>
-                    <div className="flex-shrink-0">
-                      <CheckCircle 
-                        className={cn(
-                          "h-5 w-5",
-                          task.completed ? "text-green-500" : "text-muted stroke-[0.5]"
-                        )} 
-                      />
-                    </div>
                   </div>
-                );
-              })}
+                  <span className={cn(
+                    "text-sm", 
+                    task.completed ? "text-slate-500 line-through" : "text-slate-900"
+                  )}>
+                    {task.title}
+                  </span>
+                  {!task.completed && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="ml-auto h-7 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                      onClick={() => router.push("/professional/profile")}
+                    >
+                      Complete
+                    </Button>
+                  )}
+                </div>
+              ))}
             </div>
           </CardContent>
-        </Card>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2 border-primary/10 shadow-md overflow-hidden">
-          <CardHeader className="bg-primary/5 pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <Briefcase className="h-5 w-5 text-primary" />
-                  Job Matches
-                </CardTitle>
-                <CardDescription className="text-base">
-                  Opportunities that match your skills and preferences
-                </CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" className="text-sm" asChild>
-                <Link href="/dashboard/jobs" tabIndex={0} aria-label="View all job matches">
-                  View All
-                  <ArrowRight className="h-3 w-3 ml-1" />
-                </Link>
+          {profileCompletion < 100 && (
+            <CardFooter>
+              <Button 
+                className="w-full bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600"
+                onClick={() => router.push("/professional/profile")}
+              >
+                Complete Your Profile
               </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y">
-              {matchingJobs.length > 0 ? (
-                matchingJobs.map(job => (
-                  <div key={job.id} className="p-5 hover:bg-muted/30 transition-colors">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium text-lg">{job.title}</h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Avatar className="h-5 w-5">
-                            <AvatarFallback className="text-xs bg-muted">
-                              {job.businessName.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <p className="text-sm text-muted-foreground">
-                            {job.businessName}
-                          </p>
-                          <Badge variant="outline" className="text-xs flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {job.location || "Remote"}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span className="text-xs">
-                            {new Date(job.datePosted).toLocaleDateString()}
-                          </span>
-                        </Badge>
-                      </div>
-                    </div>
-                    <p className="text-sm mt-3 line-clamp-2 text-muted-foreground">{job.description}</p>
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {job.skills.map(skill => (
-                        <Badge 
-                          key={skill} 
-                          variant="secondary" 
-                          className="text-xs bg-primary/5 text-primary border-primary/10"
-                        >
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                    <div className="mt-4 flex items-center gap-3">
-                      <Button size="sm" className="shadow-sm" asChild>
-                        <Link 
-                          href={`/dashboard/jobs/${job.id}`}
-                          tabIndex={0}
-                          aria-label={`View details for ${job.title}`}
-                        >
-                          View Details
-                        </Link>
-                      </Button>
-                      <Button size="sm" variant="outline" className="shadow-sm border-primary/20" asChild>
-                        <Link 
-                          href={`/dashboard/jobs/${job.id}/apply`}
-                          tabIndex={0}
-                          aria-label={`Apply for ${job.title}`}
-                        >
-                          Apply Now
-                        </Link>
-                      </Button>
-                    </div>
+            </CardFooter>
+          )}
+        </Card>
+
+        {/* Main Dashboard Content */}
+        <div className="md:col-span-2 space-y-6">
+          {/* Construction Job Matches */}
+          <Card className="border border-slate-200 shadow-md">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold flex items-center">
+                  <Wrench className="h-5 w-5 mr-2 text-blue-600" />
+                  Matching Jobs
+                </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  className="text-blue-600 h-8 px-2 text-sm hover:bg-blue-50 hover:text-blue-800"
+                  onClick={() => router.push("/jobs")}
+                >
+                  View All Jobs
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+              </div>
+              <CardDescription>Jobs matching your construction skills</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {relevantJobs.length === 0 ? (
+                <div className="text-center py-6 space-y-3">
+                  <div className="bg-slate-100 h-12 w-12 rounded-full flex items-center justify-center mx-auto">
+                    <AlertCircle className="h-6 w-6 text-slate-500" />
                   </div>
-                ))
-              ) : (
-                <div className="p-10 text-center">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <Briefcase className="h-8 w-8 text-muted-foreground" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-slate-900">No matching jobs found</p>
+                    <p className="text-sm text-slate-500">Add more skills to your profile to find matching construction jobs</p>
                   </div>
-                  <p className="text-muted-foreground text-lg font-medium mb-2">
-                    No matching jobs found
-                  </p>
-                  <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
-                    Update your skills to see more opportunities or check back later for new listings.
-                  </p>
-                  <Button asChild>
-                    <Link href="/dashboard/profile#skills" tabIndex={0}>
-                      Update Skills
-                    </Link>
+                  <Button 
+                    className="mt-2 bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600"
+                    onClick={() => router.push("/professional/profile")}
+                  >
+                    Update Skills
                   </Button>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-primary/10 shadow-md overflow-hidden">
-          <CardHeader className="bg-primary/5 pb-4">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Lightbulb className="h-5 w-5 text-amber-500" />
-              <span>AI Insights</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-5">
-            <div className="space-y-5">
-              <div className="rounded-lg bg-amber-50 p-4 border border-amber-100">
-                <h3 className="text-sm font-medium flex items-center gap-2 text-amber-700">
-                  <TrendingUp className="h-4 w-4" />
-                  Market Trends
-                </h3>
-                <p className="text-xs text-amber-600 mb-3">
-                  Skills in high demand right now:
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {suggestedSkills.map(skill => (
-                    <Badge 
-                      key={skill} 
-                      variant="outline" 
-                      className="text-xs bg-amber-50 border-amber-200 text-amber-700"
-                    >
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-                <Button variant="link" size="sm" className="text-xs text-amber-700 p-0 h-auto mt-2" asChild>
-                  <Link href="/dashboard/market-insights" tabIndex={0}>
-                    View Market Report
-                    <ExternalLink className="h-3 w-3 ml-1" />
-                  </Link>
-                </Button>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium flex items-center gap-2 mb-3">
-                  <BarChart className="h-4 w-4 text-primary" />
-                  <span>Profile Optimization</span>
-                </h3>
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-2 p-2 rounded-md bg-muted/30">
-                    <Star className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm">Add more detail to your project descriptions</span>
-                  </li>
-                  <li className="flex items-start gap-2 p-2 rounded-md bg-muted/30">
-                    <Star className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm">Include metrics and results in your portfolio</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium flex items-center gap-2 mb-3">
-                  <GraduationCap className="h-4 w-4 text-primary" />
-                  <span>Recommended Certifications</span>
-                </h3>
-                <div className="flex flex-col gap-2">
-                  <Link 
-                    href="/dashboard/learning/aws-architect" 
-                    tabIndex={0}
-                    className="flex items-center gap-2 p-2 rounded-md bg-muted/30 hover:bg-muted transition-colors"
-                  >
-                    <Award className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm">AWS Solutions Architect</span>
-                    <ArrowRight className="h-3 w-3 ml-auto" />
-                  </Link>
-                  <Link 
-                    href="/dashboard/learning/azure-devops" 
-                    tabIndex={0}
-                    className="flex items-center gap-2 p-2 rounded-md bg-muted/30 hover:bg-muted transition-colors"
-                  >
-                    <Award className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm">Azure DevOps Engineer</span>
-                    <ArrowRight className="h-3 w-3 ml-auto" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="border-t bg-muted/20 px-6 py-4">
-            <Button variant="default" size="sm" className="w-full shadow-sm" asChild>
-              <Link href="/dashboard/improve-profile" tabIndex={0} aria-label="Get personalized recommendations for improving your profile">
-                Get Personalized Recommendations
-              </Link>
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="certifications" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/40">
-          <TabsTrigger 
-            value="certifications"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          >
-            <GraduationCap className="h-4 w-4 mr-2" />
-            Certifications
-          </TabsTrigger>
-          <TabsTrigger 
-            value="portfolio"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          >
-            <Briefcase className="h-4 w-4 mr-2" />
-            Portfolio
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="certifications">
-          <Card className="border-primary/10 shadow-md overflow-hidden">
-            <CardHeader className="bg-primary/5 pb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <GraduationCap className="h-5 w-5 text-primary" />
-                    Your Certifications
-                  </CardTitle>
-                  <CardDescription className="text-base">
-                    Showcase your credentials to potential employers
-                  </CardDescription>
-                </div>
-                <Button variant="outline" size="sm" className="shadow-sm border-primary/20" asChild>
-                  <Link href="/dashboard/profile#certifications" tabIndex={0} aria-label="Add new certification">
-                    Add New
-                  </Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-5">
-              {professional.certifications.length > 0 ? (
+              ) : (
                 <div className="space-y-4">
-                  {professional.certifications.map(cert => (
-                    <div 
-                      key={cert.id} 
-                      className="flex items-start gap-4 p-4 rounded-lg border border-primary/10 bg-muted/20 hover:bg-muted/40 transition-colors"
-                    >
-                      <div className="flex-shrink-0">
-                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Award className="h-6 w-6 text-primary" />
+                  {relevantJobs.slice(0, 3).map((job) => (
+                    <div key={job.id} className="border border-slate-200 rounded-lg p-4 hover:border-blue-300 hover:bg-blue-50/30 transition-colors">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium text-slate-900">{job.title}</h3>
+                          <p className="text-sm text-slate-500">{job.businessName}</p>
                         </div>
+                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">
+                          {job.status === "open" ? "Open" : job.status === "closed" ? "Closed" : "Draft"}
+                        </Badge>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium text-base">{cert.name}</h3>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
-                          <span>{cert.issuer}</span>
-                          <span className="h-1 w-1 rounded-full bg-muted-foreground" />
-                          <CalendarDays className="h-3 w-3" />
-                          <span>Issued {new Date(cert.date).toLocaleDateString()}</span>
-                        </p>
-                        {cert.validUntil && (
-                          <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
-                            <Clock className="h-3 w-3" />
-                            Valid until {new Date(cert.validUntil).toLocaleDateString()}
-                          </p>
-                        )}
+                      <div className="mt-2 flex items-center text-xs text-slate-500">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        <span>{job.location}</span>
                       </div>
-                      <div className="flex-shrink-0 flex flex-col items-end gap-2">
-                        {cert.verified && (
-                          <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Verified
+                      <div className="mt-3 flex flex-wrap gap-1">
+                        {job.skills.slice(0, 3).map((skill) => (
+                          <Badge key={skill} variant="outline" className="text-xs py-0 font-normal">
+                            {skill}
+                          </Badge>
+                        ))}
+                        {job.skills.length > 3 && (
+                          <Badge variant="outline" className="text-xs py-0 font-normal">
+                            +{job.skills.length - 3}
                           </Badge>
                         )}
-                        <Button variant="ghost" size="sm" className="h-8 px-2">
-                          <ExternalLink className="h-4 w-4" />
+                      </div>
+                      <div className="mt-3 flex justify-between items-center">
+                        <div className="flex items-center text-xs text-slate-500">
+                          <Clock className="h-3 w-3 mr-1" />
+                          <span>Posted {job.datePosted}</span>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          className="h-8 bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600"
+                          onClick={() => router.push(`/jobs/${job.id}`)}
+                        >
+                          View Details
                         </Button>
                       </div>
                     </div>
                   ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 px-4">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <GraduationCap className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <p className="text-muted-foreground text-lg font-medium mb-2">
-                    You haven't added any certifications yet
-                  </p>
-                  <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
-                    Showcase your skills and expertise by adding professional certifications to your profile.
-                  </p>
-                  <Button className="shadow-md" asChild>
-                    <Link href="/dashboard/profile#certifications" tabIndex={0}>
-                      Add Your First Certification
-                    </Link>
-                  </Button>
+                  {relevantJobs.length > 3 && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300"
+                      onClick={() => router.push("/jobs")}
+                    >
+                      Show All {relevantJobs.length} Matching Jobs
+                    </Button>
+                  )}
                 </div>
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-        <TabsContent value="portfolio">
-          <Card className="border-primary/10 shadow-md overflow-hidden">
-            <CardHeader className="bg-primary/5 pb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <Briefcase className="h-5 w-5 text-primary" />
-                    Portfolio Items
-                  </CardTitle>
-                  <CardDescription className="text-base">
-                    Your most recent work samples
-                  </CardDescription>
-                </div>
-                <Button variant="outline" size="sm" className="shadow-sm border-primary/20" asChild>
-                  <Link href="/dashboard/portfolio/add" tabIndex={0} aria-label="Add new portfolio item">
-                    Add New
-                  </Link>
-                </Button>
+
+          {/* Dashboard Tabs */}
+          <Card className="border border-slate-200 shadow-md">
+            <CardHeader className="pb-2 border-b">
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => setActiveView("jobs")}
+                  className={cn(
+                    "pb-2 text-sm font-medium relative",
+                    activeView === "jobs" 
+                      ? "text-blue-600" 
+                      : "text-slate-500 hover:text-slate-900"
+                  )}
+                >
+                  <div className="flex items-center">
+                    <Briefcase className="h-4 w-4 mr-1" />
+                    Applied Jobs
+                  </div>
+                  {activeView === "jobs" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 to-teal-500" />
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveView("certifications")}
+                  className={cn(
+                    "pb-2 text-sm font-medium relative",
+                    activeView === "certifications" 
+                      ? "text-blue-600" 
+                      : "text-slate-500 hover:text-slate-900"
+                  )}
+                >
+                  <div className="flex items-center">
+                    <Award className="h-4 w-4 mr-1" />
+                    Certifications
+                  </div>
+                  {activeView === "certifications" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 to-teal-500" />
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveView("portfolio")}
+                  className={cn(
+                    "pb-2 text-sm font-medium relative",
+                    activeView === "portfolio" 
+                      ? "text-blue-600" 
+                      : "text-slate-500 hover:text-slate-900"
+                  )}
+                >
+                  <div className="flex items-center">
+                    <Activity className="h-4 w-4 mr-1" />
+                    Portfolio
+                  </div>
+                  {activeView === "portfolio" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 to-teal-500" />
+                  )}
+                </button>
               </div>
             </CardHeader>
-            <CardContent className="p-5">
-              {professional.portfolio.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  {professional.portfolio.map(item => (
-                    <div 
-                      key={item.id} 
-                      className="overflow-hidden rounded-lg border border-primary/10 bg-muted/20 hover:bg-muted/30 transition-colors shadow-sm"
-                    >
-                      <div className="relative aspect-video bg-muted overflow-hidden group">
-                        <img 
-                          src={item.imageUrl} 
-                          alt={item.altText} 
-                          className="object-cover w-full h-full transition-transform group-hover:scale-105" 
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-start p-4">
-                          <Button variant="secondary" size="sm" className="shadow-md" asChild>
-                            <Link href={`/dashboard/portfolio/${item.id}`} tabIndex={0}>
-                              View Details
-                            </Link>
-                          </Button>
-                        </div>
+            <CardContent className="pt-4">
+              {activeView === "jobs" && (
+                <div className="space-y-4">
+                  {jobs.filter(job => job.status === "applied").length === 0 ? (
+                    <div className="text-center py-6 space-y-3">
+                      <div className="bg-slate-100 h-12 w-12 rounded-full flex items-center justify-center mx-auto">
+                        <Briefcase className="h-6 w-6 text-slate-400" />
                       </div>
-                      <div className="p-4">
-                        <div className="flex items-start justify-between">
-                          <h3 className="font-medium text-base">{item.title}</h3>
-                          <Badge variant="outline" className="text-xs flex items-center gap-1">
-                            <CalendarDays className="h-3 w-3" />
-                            {new Date(item.date).getFullYear()}
-                          </Badge>
-                        </div>
-                        <p className="text-sm mt-2 line-clamp-2 text-muted-foreground">
-                          {item.description}
-                        </p>
-                        <div className="flex flex-wrap gap-1.5 mt-3">
-                          {item.tags.slice(0, 3).map(tag => (
-                            <Badge 
-                              key={tag} 
-                              variant="secondary" 
-                              className="text-xs bg-primary/5 text-primary border-primary/10"
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                          {item.tags.length > 3 && (
-                            <Badge variant="secondary" className="text-xs">
-                              +{item.tags.length - 3}
-                            </Badge>
-                          )}
-                        </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-slate-900">No job applications yet</p>
+                        <p className="text-sm text-slate-500">Start applying to construction jobs that match your skills</p>
                       </div>
+                      <Button 
+                        className="mt-2 bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600"
+                        onClick={() => router.push("/jobs")}
+                      >
+                        Browse Jobs
+                      </Button>
                     </div>
-                  ))}
+                  ) : (
+                    <div>Applied jobs will appear here</div>
+                  )}
                 </div>
-              ) : (
-                <div className="text-center py-12 px-4">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <Briefcase className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <p className="text-muted-foreground text-lg font-medium mb-2">
-                    You haven't added any portfolio items yet
-                  </p>
-                  <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
-                    Showcase your best work to potential clients by adding portfolio items to your profile.
-                  </p>
-                  <Button className="shadow-md" asChild>
-                    <Link href="/dashboard/portfolio" tabIndex={0}>
-                      Add Your First Portfolio Item
-                    </Link>
-                  </Button>
+              )}
+
+              {activeView === "certifications" && (
+                <div className="space-y-4">
+                  {!certifications || certifications.length === 0 ? (
+                    <div className="text-center py-6 space-y-3">
+                      <div className="bg-slate-100 h-12 w-12 rounded-full flex items-center justify-center mx-auto">
+                        <Award className="h-6 w-6 text-slate-400" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-slate-900">No certifications added</p>
+                        <p className="text-sm text-slate-500">Add your construction certifications to stand out to employers</p>
+                      </div>
+                      <Button 
+                        className="mt-2 bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600"
+                        onClick={() => router.push("/professional/certifications")}
+                      >
+                        Add Certifications
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {certifications.map((cert) => (
+                        <div key={cert.id} className="border border-slate-200 rounded-lg p-4 hover:border-blue-300 hover:bg-blue-50/30 transition-colors">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-medium text-slate-900">{cert.name}</h3>
+                              <p className="text-sm text-slate-500">{cert.issuer}</p>
+                            </div>
+                            {cert.verified && (
+                              <Badge className="bg-teal-100 text-teal-800 hover:bg-teal-200">Verified</Badge>
+                            )}
+                          </div>
+                          <div className="mt-2 text-xs text-slate-500">
+                            <span>Issued: {cert.date}</span>
+                            {cert.validUntil && (
+                              <span className="ml-3">Valid until: {cert.validUntil}</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeView === "portfolio" && (
+                <div className="space-y-4">
+                  {!portfolio || portfolio.length === 0 ? (
+                    <div className="text-center py-6 space-y-3">
+                      <div className="bg-slate-100 h-12 w-12 rounded-full flex items-center justify-center mx-auto">
+                        <Activity className="h-6 w-6 text-slate-400" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-slate-900">No portfolio items</p>
+                        <p className="text-sm text-slate-500">Showcase your best construction work to attract clients</p>
+                      </div>
+                      <Button 
+                        className="mt-2 bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600"
+                        onClick={() => router.push("/professional/portfolio")}
+                      >
+                        Add Portfolio
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {portfolio.map((item) => (
+                        <div key={item.id} className="border border-slate-200 rounded-lg overflow-hidden hover:border-blue-300 transition-colors">
+                          <div className="aspect-video bg-slate-100 relative">
+                            {item.imageUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img 
+                                src={item.imageUrl} 
+                                alt={item.altText || item.title} 
+                                className="object-cover w-full h-full"
+                              />
+                            ) : (
+                              <div className="flex items-center justify-center h-full">
+                                <Activity className="h-8 w-8 text-slate-300" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-4">
+                            <h3 className="font-medium text-slate-900">{item.title}</h3>
+                            <p className="text-sm text-slate-500 mt-1 line-clamp-2">{item.description}</p>
+                            <div className="mt-3 flex flex-wrap gap-1">
+                              {item.tags && item.tags.slice(0, 3).map((tag) => (
+                                <Badge key={tag} variant="outline" className="text-xs py-0 font-normal">
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {item.tags && item.tags.length > 3 && (
+                                <Badge variant="outline" className="text-xs py-0 font-normal">
+                                  +{item.tags.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
-            <CardFooter className="border-t bg-muted/20 px-6 py-4">
-              <Button variant="ghost" className="text-sm w-full" asChild>
-                <Link href="/dashboard/portfolio" tabIndex={0} aria-label="Manage all portfolio items">
-                  Manage All Portfolio Items
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Link>
-              </Button>
-            </CardFooter>
           </Card>
-        </TabsContent>
-      </Tabs>
+
+          {/* Professional Insights Card */}
+          <Card className="border border-slate-200 shadow-md overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-500 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="h-5 w-5 text-white" />
+                  <h3 className="font-semibold text-white">Professional Insights</h3>
+                </div>
+              </div>
+            </div>
+            <CardContent className="pt-4">
+              <div className="text-center py-6 space-y-3">
+                <div className="bg-slate-100 h-12 w-12 rounded-full flex items-center justify-center mx-auto">
+                  <AlertCircle className="h-6 w-6 text-slate-400" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-900">No insights available yet</p>
+                  <p className="text-sm text-slate-500">Complete your profile and apply to jobs to see performance insights</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
-}; 
+} 

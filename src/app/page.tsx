@@ -1,17 +1,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { professionals } from '@/lib/data/professionals';
+import MainLayout from '@/components/layout/MainLayout';
 
 export default function Home() {
-  // Get featured professionals (just use the first 3)
-  const featuredProfessionals = professionals.slice(0, 3);
-  
   return (
-    <>
+    <MainLayout>
       {/* Hero Section - Enhanced with better spacing and background */}
       <section className="relative bg-gradient-to-r from-blue-700 to-purple-700 text-white overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-10"></div>
@@ -132,75 +128,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Professionals Section - Using actual data and improved cards */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4 px-4 py-1 text-purple-600 border-purple-200 bg-purple-50">Top Talent</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Featured Professionals</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover top construction professionals across various specializations.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProfessionals.map((professional) => (
-              <Link href={professional.profileUrl} key={professional.id}>
-                <Card className="h-full border-gray-200 hover:border-blue-200 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start space-x-4 mb-4">
-                      <div className="relative">
-                        <Avatar className="h-16 w-16 border-2 border-white shadow-sm">
-                          <AvatarImage src={professional.profileImageUrl} alt={professional.name} />
-                          <AvatarFallback>{professional.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                        {professional.availability === 'available' && (
-                          <div className="absolute bottom-0 right-0 bg-green-500 h-4 w-4 rounded-full border-2 border-white"></div>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-900">{professional.name}</h3>
-                        <p className="text-gray-700">{professional.title}</p>
-                        <p className="text-gray-500 text-sm">{professional.location}</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {professional.skills.slice(0, 3).map((skill, idx) => (
-                        <Badge key={idx} variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
-                          {skill}
-                        </Badge>
-                      ))}
-                      {professional.skills.length > 3 && (
-                        <Badge variant="outline" className="text-gray-500">
-                          +{professional.skills.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                      <span className="text-gray-700 font-medium">{professional.experienceYears} years exp.</span>
-                      {professional.hourlyRate && (
-                        <span className="text-blue-600 font-semibold">€{professional.hourlyRate}/hr</span>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-          
-          <div className="text-center mt-12">
-            <Button className="bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg transition-all" asChild>
-              <Link href="/professionals" className="inline-flex items-center gap-2">
-                View All Professionals
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section - Enhanced with better gradients and spacing */}
       <section className="py-20 bg-gradient-to-r from-blue-700 to-purple-700 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/images/subtle-pattern.png')] opacity-5 mix-blend-overlay"></div>
@@ -227,6 +154,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </>
+    </MainLayout>
   );
 }

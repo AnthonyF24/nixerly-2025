@@ -1,16 +1,38 @@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import MainLayout from '@/components/layout/MainLayout';
+import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export default function ContactPage() {
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Contact Us</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Have questions or need assistance? We're here to help! Fill out the form below and our team will get back to you shortly.
-          </p>
+    <MainLayout>
+      {/* Hero Section */}
+      <section className="bg-gradient-to-r from-blue-700 to-purple-700 text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <Badge variant="outline" className="mb-6 px-4 py-1 text-blue-100 border-blue-300 bg-blue-800/30">Get In Touch</Badge>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">Contact Us</h1>
+            <p className="text-xl text-blue-100">
+              Have questions or need assistance? We're here to help! Fill out the form below and our team will get back to you shortly.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="container max-w-5xl mx-auto px-4 py-12">
+        <div className="flex items-center text-sm text-muted-foreground mb-8">
+          <Link 
+            href="/" 
+            className="hover:underline"
+            tabIndex={0}
+          >
+            Home
+          </Link>
+          <ChevronRight className="h-4 w-4 mx-2" />
+          <span>Contact Us</span>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -65,7 +87,7 @@ export default function ContactPage() {
                 />
               </div>
               
-              <Button className="w-full">Submit Message</Button>
+              <Button className="w-full bg-blue-600 hover:bg-blue-700">Submit Message</Button>
             </div>
           </div>
           
@@ -130,7 +152,13 @@ export default function ContactPage() {
             </div>
           </div>
         </div>
+
+        <div className="mt-12 border-t pt-8">
+          <p className="text-center text-sm text-muted-foreground">
+            Want to learn more about how we handle your data? Read our <Link href="/privacy" className="font-medium underline" tabIndex={0}>Privacy Policy</Link>
+          </p>
+        </div>
       </div>
-    </div>
+    </MainLayout>
   );
 } 
