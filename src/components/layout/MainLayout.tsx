@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,20 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, userType, professional, business } = useAppStore();
   const pathname = usePathname();
+  
+  // Enable scrolling when the component mounts
+  useEffect(() => {
+    // Force enable scrolling
+    document.documentElement.style.overflow = 'auto';
+    document.documentElement.style.height = 'auto';
+    document.body.style.overflow = 'auto';
+    document.body.style.height = 'auto';
+    
+    // Cleanup when component unmounts
+    return () => {
+      // We don't reset because we always want scrolling enabled
+    };
+  }, []);
   
   const handleToggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -56,7 +70,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   };
   
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen overflow-auto">
       {/* Navbar */}
       <nav className="bg-white shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4">
@@ -256,7 +270,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       </nav>
       
       {/* Main content */}
-      <main className="flex-1">
+      <main className="flex-1 overflow-auto">
         {children}
       </main>
     </div>

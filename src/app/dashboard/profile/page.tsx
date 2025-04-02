@@ -52,10 +52,9 @@ const ProfilePage = () => {
   // Define sections based on user type
   const professionalSections = [
     { id: "info", label: "Personal Info", icon: <User className="h-5 w-5 mr-2" /> },
-    { id: "availability", label: "Availability", icon: <ScrollText className="h-5 w-5 mr-2" /> },
-    { id: "skills", label: "Skills", icon: <FileText className="h-5 w-5 mr-2" /> },
-    { id: "certifications", label: "Certifications", icon: <Award className="h-5 w-5 mr-2" /> },
     { id: "portfolio", label: "Portfolio", icon: <Image className="h-5 w-5 mr-2" /> },
+    { id: "certifications", label: "Certifications", icon: <Award className="h-5 w-5 mr-2" /> },
+    { id: "skills", label: "Skills", icon: <FileText className="h-5 w-5 mr-2" /> },
   ];
   
   const businessSections = [

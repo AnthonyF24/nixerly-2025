@@ -3,10 +3,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from '@/lib/store';
-import { dummyJobs } from '@/lib/dummy-data';
-import { Briefcase, MapPin, Calendar, Building } from 'lucide-react';
+import { dummyJobs, dummyBusinesses } from '@/lib/dummy-data';
+import { Briefcase, MapPin, Calendar, Building, DollarSign, SendIcon, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { IJob } from '@/lib/store';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from 'next/image';
+import JobApplicationModal from './JobApplicationModal';
 
 interface JobListProps {
   limit?: number;
@@ -88,80 +91,183 @@ const JobList: React.FC<JobListProps> = ({ limit, showFilters = true }) => {
 };
 
 const JobCard: React.FC<{ job: IJob }> = ({ job }) => {
+  const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
+  const { professional, hasAppliedToJob } = useAppStore();
+  
+  // Find associated business to get logo URL
+  const associatedBusiness = dummyBusinesses.find(b => b.id === job.businessId);
+  
+  // Format salary based on type and values
+  const formatSalary = () => {
+    if (!job.salaryMin && !job.salaryMax) return null;
+    
+    const currency = '€';
+    const formatNumber = (num?: number) => num?.toLocaleString();
+    
+    let prefix = '';
+    let suffix = '';
+    
+    switch(job.salaryType) {
+      case 'hourly':
+        prefix = `${currency}`;
+        suffix = '/hr';
+        break;
+      case 'daily':
+        prefix = `${currency}`;
+        suffix = '/day';
+        break;
+      case 'annual':
+        prefix = `${currency}`;
+        suffix = '/year';
+        break;
+      default:
+        prefix = `${currency}`;
+    }
+    
+    if (job.salaryMin && job.salaryMax) {
+      return `${prefix}${formatNumber(job.salaryMin)} - ${prefix}${formatNumber(job.salaryMax)}${suffix}`;
+    } else if (job.salaryMin) {
+      return `${prefix}${formatNumber(job.salaryMin)}${suffix}+`;
+    } else if (job.salaryMax) {
+      return `Up to ${prefix}${formatNumber(job.salaryMax)}${suffix}`;
+    }
+    
+    return null;
+  };
+  
+  const salaryInfo = formatSalary();
+  const businessInitial = job.businessName ? job.businessName.charAt(0) : 'B';
+  const alreadyApplied = professional ? hasAppliedToJob(job.id, professional.id) : false;
+  
+  const handleApplyClick = () => {
+    setIsApplicationModalOpen(true);
+  };
+  
+  const handleCloseModal = () => {
+    setIsApplicationModalOpen(false);
+  };
+  
   return (
-    <Card className="border-gray-200 hover:border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-xl">{job.title}</CardTitle>
-            <CardDescription className="flex items-center mt-1">
-              <Building className="h-4 w-4 mr-1" />
-              {job.businessName}
-            </CardDescription>
-          </div>
-          <Badge className={
-            job.status === 'open' 
-              ? 'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-800/20 dark:text-blue-400' 
-              : 'bg-muted'
-          }>
-            {job.status === 'open' ? 'Open' : job.status === 'closed' ? 'Closed' : 'Draft'}
-          </Badge>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="space-y-4">
-          <p className="text-sm line-clamp-3">{job.description}</p>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
-            {job.location && (
-              <div className="flex items-center">
-                <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span className="truncate">{job.location}</span>
+    <>
+      <Card className="border-gray-200 hover:border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-start">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-12 w-12 border border-gray-200">
+                <AvatarImage src={associatedBusiness?.logoUrl || `/avatars/business-${job.businessId}.jpg`} alt={job.businessName} />
+                <AvatarFallback className="bg-blue-100 text-blue-700 font-medium">
+                  {businessInitial}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <CardTitle className="text-xl">{job.title}</CardTitle>
+                <CardDescription className="flex items-center mt-1">
+                  <Building className="h-4 w-4 mr-1" />
+                  {job.businessName}
+                </CardDescription>
               </div>
-            )}
+            </div>
+            <Badge className={
+              job.status === 'open' 
+                ? 'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-800/20 dark:text-blue-400' 
+                : 'bg-muted'
+            }>
+              {job.status === 'open' ? 'Open' : job.status === 'closed' ? 'Closed' : job.status === 'applied' ? 'Applied' : 'Draft'}
+            </Badge>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-sm line-clamp-3">{job.description}</p>
             
-            <div className="flex items-center">
-              <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span>Posted {formatDate(job.datePosted)}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+              {job.location && (
+                <div className="flex items-center">
+                  <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">{job.location}</span>
+                </div>
+              )}
+              
+              <div className="flex items-center">
+                <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span>Posted {formatDate(job.datePosted)}</span>
+              </div>
+              
+              {salaryInfo && (
+                <div className="flex items-center text-blue-700 font-medium">
+                  <DollarSign className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span>{salaryInfo}</span>
+                </div>
+              )}
+              {!salaryInfo && (
+                <div className="flex items-center text-amber-700 font-medium">
+                  <DollarSign className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span>Compensation details on request</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex flex-wrap gap-1 mt-3">
+              {job.skills.map(skill => (
+                <Badge key={skill} variant="secondary" className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100">
+                  {skill}
+                </Badge>
+              ))}
             </div>
           </div>
-          
-          <div className="flex flex-wrap gap-1 mt-3">
-            {job.skills.map(skill => (
-              <Badge key={skill} variant="secondary" className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100">
-                {skill}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      </CardContent>
-      
-      <CardFooter className="border-t bg-blue-50/30 px-6 py-3 flex justify-between">
-        <div className="text-xs text-muted-foreground">
-          {job.deadline && (
-            <span>
-              Apply by {formatDate(job.deadline)}
-            </span>
-          )}
-        </div>
+        </CardContent>
         
-        <Button 
-          size="sm" 
-          disabled={job.status !== 'open'} 
-          className={job.status === 'open' ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm" : ""}
-          asChild
-        >
-          <Link 
-            href={`/jobs/${job.id}`}
-            tabIndex={0}
-            aria-label={`View details for ${job.title}`}
-          >
-            View Details
-          </Link>
-        </Button>
-      </CardFooter>
-    </Card>
+        <CardFooter className="border-t bg-blue-50/30 px-6 py-3 flex justify-between">
+          <div className="text-xs text-muted-foreground">
+            {job.deadline && (
+              <span>
+                Apply by {formatDate(job.deadline)}
+              </span>
+            )}
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              size="sm" 
+              variant="outline"
+              disabled={job.status !== 'open'} 
+              className="flex items-center gap-1"
+              asChild
+            >
+              <Link 
+                href={`/jobs/${job.id}`}
+                tabIndex={0}
+                aria-label={`View details for ${job.title}`}
+              >
+                <ExternalLink className="h-4 w-4" />
+                Details
+              </Link>
+            </Button>
+            
+            <Button 
+              size="sm" 
+              disabled={job.status !== 'open' || alreadyApplied} 
+              className={job.status === 'open' && !alreadyApplied ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm flex items-center gap-1" : ""}
+              onClick={handleApplyClick}
+              aria-label={`Apply for ${job.title}`}
+              tabIndex={0}
+            >
+              <SendIcon className="h-4 w-4" />
+              {alreadyApplied ? 'Applied' : 'Apply Now'}
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
+      
+      {isApplicationModalOpen && (
+        <JobApplicationModal
+          isOpen={isApplicationModalOpen}
+          job={job}
+          onClose={handleCloseModal}
+        />
+      )}
+    </>
   );
 };
 

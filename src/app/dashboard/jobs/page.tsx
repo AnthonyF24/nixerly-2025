@@ -8,9 +8,11 @@ import JobList from "@/components/jobs/JobList";
 import { dummyProfessionals } from "@/lib/dummy-data";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const JobBoardPage = () => {
-  const { setProfessional, setUserType, setIsAuthenticated } = useAppStore();
+  const { setProfessional, setUserType, setIsAuthenticated, isAuthenticated, userType } = useAppStore();
+  const router = useRouter();
   
   // For demo purposes, always set as authenticated professional user
   useEffect(() => {
@@ -18,7 +20,22 @@ const JobBoardPage = () => {
     setIsAuthenticated(true);
     setProfessional(dummyProfessionals[0]);
     setUserType("professional");
-  }, [setProfessional, setUserType, setIsAuthenticated]);
+    
+    // In a real application, we would check if the user is authenticated and a professional
+    // If not, redirect to login or unauthorized page
+    // This is commented out since we're using dummy data for demo purposes
+    /*
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    
+    if (userType !== 'professional') {
+      router.push('/unauthorized');
+      return;
+    }
+    */
+  }, [setProfessional, setUserType, setIsAuthenticated, isAuthenticated, userType, router]);
 
   return (
     <DashboardLayout>

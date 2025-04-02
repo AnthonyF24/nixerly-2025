@@ -15,6 +15,17 @@ export interface IProfessional {
   location?: string;
   profileComplete: number;
   verified: boolean;
+  jobApplications?: IJobApplication[]; // Track job applications
+}
+
+// Job application type
+export interface IJobApplication {
+  id: string;
+  jobId: string;
+  professionalId: string;
+  appliedAt: string;
+  status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
+  coverNote?: string;
 }
 
 export interface ICertification {
@@ -48,6 +59,7 @@ export interface IBusiness {
   location?: string;
   verified: boolean;
   profileComplete?: number;
+  logoUrl?: string;
 }
 
 export interface IJob {
@@ -61,6 +73,9 @@ export interface IJob {
   datePosted: string;
   deadline?: string;
   status: 'open' | 'closed' | 'draft' | 'applied';
+  salaryMin?: number;
+  salaryMax?: number;
+  salaryType?: 'hourly' | 'daily' | 'annual';
 }
 
 // Filter types
@@ -83,6 +98,7 @@ interface AppState {
   professional: IProfessional | null;
   business: IBusiness | null;
   jobs: IJob[];
+  jobApplications: IJobApplication[];
   professionalFilters: IProfessionalFilters;
   jobFilters: IJobFilters;
   isAuthenticated: boolean;
@@ -98,13 +114,19 @@ interface AppState {
   setJobFilters: (filters: Partial<IJobFilters>) => void;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
   logout: () => void;
+  
+  // Job application actions
+  addJobApplication: (application: Omit<IJobApplication, 'id' | 'appliedAt'>) => void;
+  getJobApplicationsForProfessional: (professionalId: string) => IJobApplication[];
+  hasAppliedToJob: (jobId: string, professionalId: string) => boolean;
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   userType: null,
   professional: null,
   business: null,
   jobs: [],
+  jobApplications: [],
   professionalFilters: {
     skills: [],
     availability: null,
@@ -140,6 +162,38 @@ export const useAppStore = create<AppState>((set) => ({
     business: null,
     isAuthenticated: false,
   }),
+  
+  // Job application actions
+  addJobApplication: (application) => {
+    const id = `app-${Date.now()}`;
+    const newApplication: IJobApplication = {
+      ...application,
+      id,
+      appliedAt: new Date().toISOString(),
+      status: 'pending'
+    };
+    
+    set((state) => ({ 
+      jobApplications: [...state.jobApplications, newApplication],
+      jobs: state.jobs.map(job => 
+        job.id === application.jobId 
+          ? { ...job, status: 'applied' } 
+          : job
+      )
+    }));
+    
+    return id;
+  },
+  
+  getJobApplicationsForProfessional: (professionalId) => {
+    return get().jobApplications.filter(app => app.professionalId === professionalId);
+  },
+  
+  hasAppliedToJob: (jobId, professionalId) => {
+    return get().jobApplications.some(
+      app => app.jobId === jobId && app.professionalId === professionalId
+    );
+  }
 })); 
 
 // Helper hook for the Professional Dashboard to access required data

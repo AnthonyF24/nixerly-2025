@@ -30,9 +30,10 @@ import {
   CheckCircle, 
   Mail,
   Smartphone,
-  Download,
-  AlertTriangle
+  AlertTriangle,
+  Phone
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 const settingsFormSchema = z.object({
   security: z.object({
@@ -53,6 +54,22 @@ const settingsFormSchema = z.object({
     theme: z.enum(["light", "dark", "system"]).default("system"),
     currency: z.enum(["USD", "EUR", "GBP", "CAD", "AUD"]).default("USD"),
   }),
+  contact: z.object({
+    email: z.string().email({
+      message: "Please enter a valid email address.",
+    }),
+    phone: z.string().optional(),
+    whatsapp: z.string().optional(),
+    preferredContact: z.enum(["email", "phone", "whatsapp"]),
+    contactAvailability: z.object({
+      weekdays: z.boolean().default(true),
+      weekends: z.boolean().default(false),
+      morning: z.boolean().default(true),
+      afternoon: z.boolean().default(true),
+      evening: z.boolean().default(false),
+    }),
+    responseTime: z.enum(["same_day", "24_hours", "48_hours", "other"]),
+  })
 });
 
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
@@ -60,14 +77,22 @@ type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 const SettingsPage = () => {
   const { professional, setProfessional, setUserType, setIsAuthenticated } = useAppStore();
   const [isSaved, setIsSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<"security" | "notifications" | "preferences">("security");
+  const [activeTab, setActiveTab] = useState<"security" | "notifications" | "preferences" | "contact">("security");
+  
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
   
   // For demo purposes
   useEffect(() => {
     setIsAuthenticated(true);
     setProfessional(dummyProfessionals[0]);
     setUserType("professional");
-  }, [setProfessional, setUserType, setIsAuthenticated]);
+    
+    // Set active tab from URL parameter if valid
+    if (tabParam && ['security', 'notifications', 'preferences', 'contact'].includes(tabParam)) {
+      setActiveTab(tabParam as "security" | "notifications" | "preferences" | "contact");
+    }
+  }, [setProfessional, setUserType, setIsAuthenticated, tabParam]);
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),
@@ -90,6 +115,20 @@ const SettingsPage = () => {
         theme: "system",
         currency: "USD",
       },
+      contact: {
+        email: professional?.email || "",
+        phone: professional?.phone || "",
+        whatsapp: professional?.phone || "",
+        preferredContact: "email",
+        contactAvailability: {
+          weekdays: true,
+          weekends: false,
+          morning: true,
+          afternoon: true,
+          evening: false,
+        },
+        responseTime: "24_hours",
+      }
     }
   });
 
@@ -99,6 +138,13 @@ const SettingsPage = () => {
     // Update professional with new settings
     setProfessional({
       ...professional,
+      email: data.contact.email,
+      phone: data.contact.phone,
+      contactSettings: {
+        preferredContact: data.contact.preferredContact,
+        contactAvailability: data.contact.contactAvailability,
+        responseTime: data.contact.responseTime,
+      }
       // In a real app, we would store these settings
       // This is just for demo purposes
     });
@@ -174,6 +220,19 @@ const SettingsPage = () => {
                     <User className="h-5 w-5" />
                     Preferences
                   </button>
+                  <button
+                    onClick={() => setActiveTab("contact")}
+                    className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                      activeTab === "contact"
+                        ? "bg-blue-50 text-blue-700 border-r-2 border-blue-600"
+                        : "text-gray-600 hover:bg-blue-50/50 hover:text-blue-700"
+                    }`}
+                    aria-label="Contact settings"
+                    tabIndex={0}
+                  >
+                    <Phone className="h-5 w-5" />
+                    Contact
+                  </button>
                 </nav>
               </CardContent>
               <CardFooter className="flex flex-col space-y-4 px-4 py-6 border-t border-blue-100">
@@ -195,14 +254,6 @@ const SettingsPage = () => {
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete Account
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="justify-start text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700 w-full"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Export Data
                   </Button>
                 </div>
               </CardFooter>
@@ -585,19 +636,299 @@ const SettingsPage = () => {
                   </Card>
                 )}
 
-                <div className="flex justify-end">
-                  <Button 
-                    type="submit" 
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm"
+                {activeTab === "contact" && (
+                  <Card className="border-blue-200/50 shadow-sm">
+                    <CardHeader className="bg-blue-50/50">
+                      <CardTitle className="text-xl flex items-center gap-2 text-blue-700">
+                        <Phone className="h-5 w-5 text-blue-600" />
+                        Contact Settings
+                      </CardTitle>
+                      <CardDescription className="text-base">
+                        Set your preferred contact methods and availability for clients to reach you
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="contact.email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-800">Email Address</FormLabel>
+                            <FormControl>
+                              <div className="flex">
+                                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-blue-200 bg-blue-50/50 text-blue-600">
+                                  <Mail className="h-4 w-4" />
+                                </span>
+                                <Input 
+                                  placeholder="your.email@example.com" 
+                                  className="rounded-l-none border-blue-200 focus-visible:ring-blue-300/30" 
+                                  {...field} 
+                                />
+                              </div>
+                            </FormControl>
+                            <FormDescription>
+                              This will be visible to clients and businesses
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="contact.phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-800">Phone Number</FormLabel>
+                            <FormControl>
+                              <div className="flex">
+                                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-blue-200 bg-blue-50/50 text-blue-600">
+                                  <Phone className="h-4 w-4" />
+                                </span>
+                                <Input 
+                                  placeholder="+353 87 123 4567" 
+                                  className="rounded-l-none border-blue-200 focus-visible:ring-blue-300/30" 
+                                  {...field} 
+                                />
+                              </div>
+                            </FormControl>
+                            <FormDescription>
+                              Add your phone number to receive calls from clients
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="contact.whatsapp"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-800">WhatsApp Number</FormLabel>
+                            <FormControl>
+                              <div className="flex">
+                                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-blue-200 bg-blue-50/50 text-green-600">
+                                  <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    viewBox="0 0 24 24" 
+                                    fill="currentColor" 
+                                    className="h-4 w-4"
+                                  >
+                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                                  </svg>
+                                </span>
+                                <Input 
+                                  placeholder="+353 87 123 4567" 
+                                  className="rounded-l-none border-blue-200 focus-visible:ring-blue-300/30" 
+                                  {...field} 
+                                />
+                              </div>
+                            </FormControl>
+                            <FormDescription>
+                              Can be the same as your phone number if you use WhatsApp
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="contact.preferredContact"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-800">Preferred Contact Method</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="border-blue-200 focus:ring-blue-300/30">
+                                  <SelectValue placeholder="Select preferred contact method" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="email">Email</SelectItem>
+                                <SelectItem value="phone">Phone Call</SelectItem>
+                                <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              This will be highlighted to clients as your preferred way to be contacted
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-medium text-blue-800">Days Available</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <FormField
+                            control={form.control}
+                            name="contact.contactAvailability.weekdays"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border border-blue-200 p-3 hover:bg-blue-50/50 transition-colors">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base text-blue-800">Weekdays</FormLabel>
+                                  <FormDescription>
+                                    Monday through Friday
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    className="data-[state=checked]:bg-blue-600"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="contact.contactAvailability.weekends"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border border-blue-200 p-3 hover:bg-blue-50/50 transition-colors">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base text-blue-800">Weekends</FormLabel>
+                                  <FormDescription>
+                                    Saturday and Sunday
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    className="data-[state=checked]:bg-blue-600"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-medium text-blue-800">Time of Day</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <FormField
+                            control={form.control}
+                            name="contact.contactAvailability.morning"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border border-blue-200 p-3 hover:bg-blue-50/50 transition-colors">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base text-blue-800">Morning</FormLabel>
+                                  <FormDescription>
+                                    8am - 12pm
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    className="data-[state=checked]:bg-blue-600"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="contact.contactAvailability.afternoon"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border border-blue-200 p-3 hover:bg-blue-50/50 transition-colors">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base text-blue-800">Afternoon</FormLabel>
+                                  <FormDescription>
+                                    12pm - 5pm
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    className="data-[state=checked]:bg-blue-600"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="contact.contactAvailability.evening"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border border-blue-200 p-3 hover:bg-blue-50/50 transition-colors">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base text-blue-800">Evening</FormLabel>
+                                  <FormDescription>
+                                    5pm - 9pm
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    className="data-[state=checked]:bg-blue-600"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                      
+                      <FormField
+                        control={form.control}
+                        name="contact.responseTime"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-800">Expected Response Time</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="border-blue-200 focus:ring-blue-300/30">
+                                  <SelectValue placeholder="Select response time" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="same_day">Same Day</SelectItem>
+                                <SelectItem value="24_hours">Within 24 Hours</SelectItem>
+                                <SelectItem value="48_hours">Within 48 Hours</SelectItem>
+                                <SelectItem value="other">More than 48 Hours</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              Let clients know how quickly you typically respond
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+
+                <div className="flex items-center gap-4 mt-6">
+                  <Button
+                    type="submit"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6"
                   >
-                    {isSaved ? (
-                      <span className="flex items-center gap-1">
-                        <CheckCircle className="h-4 w-4" /> Settings Saved
-                      </span>
-                    ) : (
-                      "Save Settings"
-                    )}
+                    Save Settings
                   </Button>
+                  
+                  {isSaved && (
+                    <div className="flex items-center text-green-600 text-sm font-medium">
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Settings saved
+                    </div>
+                  )}
                 </div>
               </form>
             </Form>

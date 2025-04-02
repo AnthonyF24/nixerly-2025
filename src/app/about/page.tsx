@@ -7,26 +7,12 @@ import { Separator } from '@/components/ui/separator';
 import MainLayout from '@/components/layout/MainLayout';
 
 export default function AboutPage() {
-  const teamMembers = [
-    {
-      name: "Sarah O'Connor",
-      title: "Founder & CEO",
-      bio: "20+ years in construction and tech, former project manager at major development firms across Ireland.",
-      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1976&auto=format&fit=crop"
-    },
-    {
-      name: "Michael Brennan",
-      title: "Head of Operations",
-      bio: "Civil engineer with 15 years experience in infrastructure projects across Ireland and the UK.",
-      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1974&auto=format&fit=crop"
-    },
-    {
-      name: "Niamh Kelly",
-      title: "Community Manager",
-      bio: "Connecting professionals with opportunities in the construction industry for over 8 years.",
-      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=1961&auto=format&fit=crop"
-    },
-  ];
+  const founder = {
+    name: "Anthony Fildes",
+    title: "Founder",
+    bio: "Visionary entrepreneur with a passion for transforming the construction industry in Ireland. Anthony combines deep expertise in technology and business to create innovative solutions that connect construction professionals with opportunities.",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop"
+  };
 
   const companyValues = [
     {
@@ -149,31 +135,29 @@ export default function AboutPage() {
       <section className="py-16 md:py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-16">
-            <Badge variant="outline" className="mb-4 px-3 py-1 text-green-700 border-green-200 bg-green-50">Meet Our Team</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">The People Behind Nixerly</h2>
-            <p className="text-lg text-gray-700">
-              Our team combines expertise in construction, technology, and community building to create the best platform for Ireland's construction industry.
-            </p>
+            <Badge variant="outline" className="mb-4 px-3 py-1 text-green-700 border-green-200 bg-green-50">Founder</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">About Our Founder</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {teamMembers.map((member, index) => (
-              <div key={index} className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300">
-                <div className="relative h-64">
-                  <Image 
-                    src={member.image} 
-                    alt={member.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">{member.name}</h3>
-                  <p className="text-blue-600 font-medium mb-3">{member.title}</p>
-                  <p className="text-gray-700">{member.bio}</p>
+          <div className="flex justify-center">
+            <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 max-w-3xl">
+              <div className="p-8">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{founder.name}</h3>
+                <p className="text-blue-600 font-medium mb-4">{founder.title}</p>
+                
+                <div className="space-y-4 text-gray-700">
+                  <p>
+                    Nixerly was founded by an ambitious and forward-thinking entrepreneur with a deep understanding of the construction industry and a passion for helping tradespeople succeed. Having run a welding business through both challenging and successful times, our founder knows firsthand the struggles skilled professionals face — from unreliable job leads and inconsistent income to lack of visibility and recognition in a fast-paced, competitive market.
+                  </p>
+                  <p>
+                    Driven by a vision to make the industry more transparent, accessible, and fair, they built Nixerly to be more than just a listings site — it's a professional platform designed to elevate careers, reduce risks, and connect verified talent with businesses that value quality and reliability.
+                  </p>
+                  <p>
+                    Their unique blend of hands-on trade experience and entrepreneurial grit, combined with personal insight into how construction workers build their reputations and livelihoods, ensures that Nixerly stays true to its mission: to empower professionals, modernize hiring, and bring trust and opportunity back to the core of the industry.
+                  </p>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>

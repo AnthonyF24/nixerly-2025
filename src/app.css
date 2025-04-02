@@ -1,0 +1,80 @@
+/* Reset CSS but allow scrolling */
+html, body {
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  /* Allow scrolling on the body */
+  overflow-y: auto !important;
+  position: relative !important;
+  overscroll-behavior: auto !important;
+}
+
+body {
+  /* Ensure body takes full height */
+  min-height: 100vh !important;
+  overflow: auto !important;
+  display: block !important;
+}
+
+/* Main container should be full height */
+main {
+  /* Take at least full viewport height */
+  min-height: 100vh !important;
+  /* Ensure content can be scrolled */
+  overflow-y: auto !important;
+  /* Prevent horizontal scrolling */
+  overflow-x: hidden !important;
+  position: relative !important;
+  display: block !important;
+}
+
+/* Page containers should expand with content */
+.page-container {
+  /* Allow container to grow with content */
+  min-height: 100% !important;
+  width: 100% !important;
+  position: relative !important;
+  overflow: auto !important;
+  display: block !important;
+}
+
+/* Content should flow naturally */
+.content {
+  width: 100% !important;
+  /* Don't restrict height */
+  height: auto !important;
+  /* Add some padding for better appearance */
+  padding: 1rem !important;
+  overflow: visible !important;
+  display: block !important;
+}
+
+/* Fix for flex containers that might interfere with scrolling */
+.flex-col, .flex {
+  min-height: auto !important;
+  overflow: visible !important;
+}
+
+/* Ensure the root div container doesn't block scrolling */
+:global(#sveltekit-body), :global(#sveltekit-body > div) {
+  min-height: 100vh !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* Fix for any fixed/absolute positioned elements that might cover content */
+.fixed, .absolute {
+  position: absolute !important;
+  height: auto !important;
+}
+
+/* Fixing issues with any position:fixed headers/footers */
+header.fixed, header.sticky, footer.fixed {
+  position: relative !important;
+  width: 100% !important;
+}
+
+/* Aggressive overflow rule for all elements */
+* {
+  max-height: none !important;
+} 

@@ -130,6 +130,7 @@ export const dummyBusinesses: IBusiness[] = [
     location: "San Francisco, CA",
     verified: true,
     profileComplete: 90,
+    logoUrl: "/avatars/business-b1.jpg",
   },
   {
     id: "b2",
@@ -140,6 +141,7 @@ export const dummyBusinesses: IBusiness[] = [
     location: "New York, NY",
     verified: true,
     profileComplete: 75,
+    logoUrl: "/avatars/business-b2.jpg",
   },
   {
     id: "b3",
@@ -151,6 +153,7 @@ export const dummyBusinesses: IBusiness[] = [
     location: "Seattle, WA",
     verified: false,
     profileComplete: 60,
+    logoUrl: "/avatars/business-b3.jpg",
   },
 ];
 
@@ -167,6 +170,9 @@ export const dummyJobs: IJob[] = [
     datePosted: "2023-04-01",
     deadline: "2023-04-30",
     status: "open",
+    salaryMin: 45000,
+    salaryMax: 60000,
+    salaryType: "annual",
   },
   {
     id: "j2",
@@ -179,6 +185,9 @@ export const dummyJobs: IJob[] = [
     datePosted: "2023-03-28",
     deadline: "2023-04-20",
     status: "open",
+    salaryMin: 250,
+    salaryMax: 350,
+    salaryType: "daily",
   },
   {
     id: "j3",
@@ -191,6 +200,9 @@ export const dummyJobs: IJob[] = [
     datePosted: "2023-03-25",
     deadline: "2023-04-25",
     status: "open",
+    salaryMin: 30,
+    salaryMax: 45,
+    salaryType: "hourly",
   },
   {
     id: "j4",
@@ -202,6 +214,8 @@ export const dummyJobs: IJob[] = [
     skills: ["Finish Carpentry", "Historical Restoration", "Custom Woodwork", "Detail Oriented"],
     datePosted: "2023-03-20",
     status: "closed",
+    salaryMin: 35,
+    salaryType: "hourly",
   },
   {
     id: "j5",
@@ -213,6 +227,9 @@ export const dummyJobs: IJob[] = [
     skills: ["Solar Installation", "Roofing Experience", "Electrical Knowledge", "Renewable Energy"],
     datePosted: "2023-04-02",
     status: "draft",
+    salaryMin: 40000,
+    salaryMax: 55000,
+    salaryType: "annual",
   },
 ];
 

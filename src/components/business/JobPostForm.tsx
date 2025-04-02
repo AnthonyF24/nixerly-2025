@@ -35,6 +35,9 @@ const jobFormSchema = z.object({
   deadline: z.date().optional(),
   status: z.enum(["draft", "open", "closed"]),
   remoteOk: z.boolean().default(false),
+  salaryMin: z.number().optional(),
+  salaryMax: z.number().optional(),
+  salaryType: z.enum(["hourly", "daily", "annual"]).default("annual"),
 });
 
 type JobFormValues = z.infer<typeof jobFormSchema>;
@@ -57,6 +60,9 @@ const JobPostForm: React.FC<JobPostFormProps> = ({ job, onSuccess }) => {
       deadline: job.deadline ? new Date(job.deadline) : undefined,
       status: job.status,
       remoteOk: job.location?.toLowerCase().includes('remote') || false,
+      salaryMin: job.salaryMin,
+      salaryMax: job.salaryMax,
+      salaryType: job.salaryType || "annual",
     } : {
       title: "",
       description: "",
@@ -65,6 +71,9 @@ const JobPostForm: React.FC<JobPostFormProps> = ({ job, onSuccess }) => {
       deadline: undefined,
       status: "draft",
       remoteOk: false,
+      salaryMin: undefined,
+      salaryMax: undefined,
+      salaryType: "annual",
     }
   });
   
@@ -86,6 +95,9 @@ const JobPostForm: React.FC<JobPostFormProps> = ({ job, onSuccess }) => {
       status: data.status,
       businessId: business.id,
       businessName: business.name,
+      salaryMin: data.salaryMin,
+      salaryMax: data.salaryMax,
+      salaryType: data.salaryType,
     };
     
     if (job) {
@@ -230,6 +242,78 @@ const JobPostForm: React.FC<JobPostFormProps> = ({ job, onSuccess }) => {
                   </FormItem>
                 )}
               />
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormField
+                  control={form.control}
+                  name="salaryType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Salary Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="hourly">Hourly Rate (€/hr)</SelectItem>
+                          <SelectItem value="daily">Daily Rate (€/day)</SelectItem>
+                          <SelectItem value="annual">Annual Salary (€/year)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="salaryMin"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Minimum {field.value === "hourly" ? "Rate" : field.value === "daily" ? "Rate" : "Salary"}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          placeholder={field.value === "hourly" ? "e.g. 15" : field.value === "daily" ? "e.g. 150" : "e.g. 30000"}
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="salaryMax"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maximum {field.value === "hourly" ? "Rate" : field.value === "daily" ? "Rate" : "Salary"}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          placeholder={field.value === "hourly" ? "e.g. 25" : field.value === "daily" ? "e.g. 250" : "e.g. 50000"}
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormDescription>
+                Please provide compensation information to help professionals evaluate the opportunity. This is now required for all job postings.
+              </FormDescription>
             </div>
             
             <FormField

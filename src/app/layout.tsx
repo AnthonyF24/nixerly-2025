@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./enable-scroll.js";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,11 +25,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="overflow-hidden h-full">
+    <html lang="en" className="overflow-auto h-auto min-h-screen">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-hidden h-full`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-auto h-auto min-h-screen`}
       >
         {children}
+        <Toaster />
       </body>
     </html>
   );

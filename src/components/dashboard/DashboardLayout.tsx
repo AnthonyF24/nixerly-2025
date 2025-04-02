@@ -47,7 +47,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { href: "/dashboard", label: "Dashboard", icon: <Home className="w-5 h-5" /> },
     { href: "/dashboard/profile", label: "Profile & Portfolio", icon: <User className="w-5 h-5" /> },
     { href: "/dashboard/jobs", label: "Job Board", icon: <Briefcase className="w-5 h-5" /> },
-    { href: "/dashboard/contact-settings", label: "Contact Settings", icon: <Phone className="w-5 h-5" /> },
     { href: "/dashboard/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
   
@@ -306,19 +305,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
               <span className="sr-only">Notifications</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              asChild
-            >
-              <a 
-                href="mailto:contact@nixerly.com" 
-                aria-label="Send email"
-              >
-                <Mail className="h-5 w-5" />
-                <span className="sr-only">Email</span>
-              </a>
             </Button>
             <Button 
               variant="ghost" 
