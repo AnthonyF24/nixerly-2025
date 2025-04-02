@@ -81,7 +81,25 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   // Function to check if a navigation item is active
   const isNavItemActive = (href: string) => {
-    return pathname === href || (href !== '/' && pathname?.startsWith(href));
+    // Exact match - always return true for this
+    if (pathname === href) {
+      return true;
+    }
+    
+    // For nested routes - check if this is the most specific parent route
+    if (href !== '/' && pathname?.startsWith(href + '/')) {
+      // Check if there's another more specific parent route from navItems
+      const morePreciseMatch = navItems.some(item => 
+        item.href !== href && 
+        item.href.startsWith(href + '/') && 
+        pathname.startsWith(item.href)
+      );
+      
+      // Only return true if this is the most specific parent route
+      return !morePreciseMatch;
+    }
+    
+    return false;
   };
   
   // Function to get the nav link class based on active state

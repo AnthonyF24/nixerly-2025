@@ -77,7 +77,7 @@ const ProfilePage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-lg shadow-md">
+        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-500 p-6 rounded-lg shadow-md">
           <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Profile</h1>
           <p className="text-blue-100">
             Manage your {userType === "professional" ? "professional" : "business"} profile
@@ -89,7 +89,7 @@ const ProfilePage = () => {
               <span>Profile completion</span>
               <span>{profileCompletionPercentage}%</span>
             </div>
-            <Progress value={profileCompletionPercentage} className="h-2 bg-blue-400" />
+            <Progress value={profileCompletionPercentage} className="h-2 bg-blue-400/30" />
           </div>
         </div>
         
@@ -110,6 +110,7 @@ const ProfilePage = () => {
                     }`}
                     aria-label={`Go to ${section.label} section`}
                     tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && scrollToSection(section.id)}
                   >
                     {section.icon}
                     {section.label}
@@ -133,10 +134,10 @@ const ProfilePage = () => {
           {/* Profile Content Area */}
           <div className="lg:col-span-3">
             <Tabs defaultValue="profile" className="bg-white rounded-lg shadow-sm border border-blue-100">
-              <TabsList className="w-full border-b rounded-t-lg rounded-b-none p-0">
+              <TabsList className="w-full border-b rounded-t-lg rounded-b-none p-0 bg-gradient-to-r from-blue-50 to-purple-50">
                 <TabsTrigger 
                   value="profile" 
-                  className="rounded-tl-lg border-r py-3 flex-1"
+                  className="rounded-tl-lg border-r py-3 flex-1 data-[state=active]:bg-white data-[state=active]:text-blue-700"
                   aria-label="View profile"
                 >
                   <User className="h-4 w-4 mr-2" />
@@ -144,7 +145,7 @@ const ProfilePage = () => {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="preview" 
-                  className="rounded-tr-lg py-3 flex-1"
+                  className="rounded-tr-lg py-3 flex-1 data-[state=active]:bg-white data-[state=active]:text-blue-700"
                   aria-label="Preview your profile"
                 >
                   <ScrollText className="h-4 w-4 mr-2" />
@@ -161,7 +162,7 @@ const ProfilePage = () => {
                   <h3 className="text-lg font-medium mb-2">Profile Preview</h3>
                   <p className="text-gray-500 mb-4">This is how your profile appears to {userType === "professional" ? "businesses" : "professionals"}.</p>
                   
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
                     <p className="text-sm text-gray-600">
                       Preview your profile as seen by others. Make sure all information is accurate and showcases your {userType === "professional" ? "skills" : "business"} effectively.
                     </p>
