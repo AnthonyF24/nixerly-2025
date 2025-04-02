@@ -55,14 +55,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { href: "/dashboard/profile", label: "Business Profile", icon: <User className="w-5 h-5" /> },
     { href: "/dashboard/post-job", label: "Post a Job", icon: <FilePlus className="w-5 h-5" /> },
     { href: "/dashboard/find-professionals", label: "Find Professionals", icon: <User className="w-5 h-5" /> },
-    { href: "/contact", label: "Contact", icon: <Phone className="w-5 h-5" /> },
     { href: "/dashboard/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
   
   // Public navigation links (for non-authenticated users)
   const publicNavItems = [
     { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
-    { href: "/contact", label: "Contact", icon: <Phone className="w-5 h-5" /> },
   ];
   
   // Add conditional navigation items for non-authenticated users
