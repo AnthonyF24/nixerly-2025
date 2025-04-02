@@ -224,7 +224,7 @@ export const BusinessDashboard = () => {
             <p className="text-gray-500 text-sm">Active Job Listings</p>
             <div className="mt-4">
               <Link 
-                href="/dashboard/manage-jobs" 
+                href="/dashboard/post-job" 
                 className={cn("text-sm hover:underline flex items-center gap-1", activeTheme.classes.primaryText)}
               >
                 View Jobs <ArrowRight className="h-3 w-3" />
@@ -245,10 +245,10 @@ export const BusinessDashboard = () => {
             <p className="text-gray-500 text-sm">Job Drafts</p>
             <div className="mt-4">
               <Link 
-                href="/dashboard/manage-jobs" 
+                href="/dashboard/post-job" 
                 className={cn("text-sm hover:underline flex items-center gap-1", activeTheme.classes.primaryText)}
               >
-                Edit Drafts <ArrowRight className="h-3 w-3" />
+                View Drafts <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
           </CardContent>
@@ -349,114 +349,93 @@ export const BusinessDashboard = () => {
         </Card>
       )}
 
-      {/* Recent job listings */}
-      <Card className={cn("border shadow-sm", activeTheme.classes.primaryBorder)}>
-        <CardHeader className={cn("pb-4", activeTheme.classes.primaryBgLight)}>
-          <div className="flex items-center justify-between">
+      {/* Job listings */}
+      <Card className={cn("border shadow-sm", activeTheme.classes.cardBg)}>
+        <CardHeader className="px-6 border-b">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <BriefcaseBusiness className={cn("h-5 w-5", activeTheme.classes.primaryText)} />
-                Recent Job Listings
-              </CardTitle>
-              <CardDescription>
-                Manage your active job postings
-              </CardDescription>
+              <CardTitle>Recent Job Listings</CardTitle>
+              <CardDescription>Manage your active job postings</CardDescription>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className={cn("text-sm", activeTheme.classes.primaryText, activeTheme.classes.primaryHover, activeTheme.classes.primaryBorder)} 
-              asChild
-            >
-              <Link href="/dashboard/manage-jobs" tabIndex={0} aria-label="View all job listings">
-                View All Jobs
-                <ArrowRight className="h-3 w-3 ml-1" />
+            <Button asChild>
+              <Link href="/dashboard/post-job" tabIndex={0} aria-label="Post a new job">
+                <Plus className="h-4 w-4 mr-2" />
+                Post New Job
               </Link>
             </Button>
           </div>
         </CardHeader>
-        
-        <CardContent className="p-0">
-          {activeJobs.length > 0 ? (
-            <div className="divide-y border-t">
-              {activeJobs.slice(0, 3).map(job => (
-                <div key={job.id} className={cn("flex items-start justify-between p-4 transition-colors", activeTheme.classes.primaryHover)}>
-                  <div>
-                    <h3 className="font-medium text-gray-800">{job.title}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge 
-                        variant="outline" 
-                        className={cn("text-xs flex items-center gap-1", activeTheme.classes.primaryBorder, activeTheme.classes.primaryText)}
-                      >
-                        <MapPin className="h-3 w-3" />
-                        {job.location || "Remote"}
-                      </Badge>
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
+        <CardContent className="px-6 py-4">
+          {activeJobs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 px-4 border border-dashed rounded-lg bg-muted/30 text-center">
+              <BriefcaseBusiness className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-1">No active job listings</h3>
+              <p className="text-muted-foreground mb-4 max-w-md">
+                Post your first job to start receiving applications from professionals
+              </p>
+              <Button asChild>
+                <Link href="/dashboard/post-job" tabIndex={0} aria-label="Post your first job">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Post a Job
+                </Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {activeJobs.slice(0, 3).map((job) => (
+                <div key={job.id} className="flex flex-col sm:flex-row items-start gap-4 py-4 border-b last:border-0 last:pb-0 first:pt-0">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-base">{job.title}</h3>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                      {job.location && (
+                        <Badge variant="outline" className="text-xs">
+                          {job.location}
+                        </Badge>
+                      )}
+                      <span className="text-xs text-muted-foreground">
                         Posted on {new Date(job.datePosted).toLocaleDateString()}
                       </span>
                     </div>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {job.skills.slice(0, 2).map(skill => (
-                        <Badge 
-                          key={skill} 
-                          variant="secondary" 
-                          className={cn("text-xs", activeTheme.classes.primaryBg, activeTheme.classes.primaryText, activeTheme.classes.primaryBorder)}
-                        >
+                    
+                    <p className="text-sm mt-2 line-clamp-2 text-muted-foreground">{job.description}</p>
+                    
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {job.skills.slice(0, 3).map(skill => (
+                        <Badge key={skill} variant="secondary" className="text-xs">
                           {skill}
                         </Badge>
                       ))}
-                      {job.skills.length > 2 && (
-                        <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700">
-                          +{job.skills.length - 2}
+                      {job.skills.length > 3 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{job.skills.length - 3} more
                         </Badge>
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" className={cn(activeTheme.classes.primaryText, activeTheme.classes.primaryHover)} asChild>
-                      <Link 
-                        href={`/dashboard/manage-jobs/${job.id}/edit`}
-                        aria-label="Edit job"
-                        tabIndex={0}
-                      >
-                        <FileEdit className="h-4 w-4" />
+                  
+                  <div className="flex-shrink-0 flex flex-row sm:flex-col gap-2 self-start">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/dashboard/post-job`} tabIndex={0} aria-label="Edit job">
+                        <FileEdit className="h-4 w-4 mr-2" />
+                        Edit
                       </Link>
+                    </Button>
+                    
+                    <Button variant="outline" size="sm" className="text-yellow-600">
+                      <Archive className="h-4 w-4 mr-2" />
+                      Close
                     </Button>
                   </div>
                 </div>
               ))}
-              {activeJobs.length > 3 && (
-                <div className="p-4 text-center">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className={cn(activeTheme.classes.primaryBorder, activeTheme.classes.primaryText)} 
-                    asChild
-                  >
-                    <Link href="/dashboard/manage-jobs">
-                      View All {activeJobs.length} Active Jobs
-                    </Link>
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="p-8 text-center border-t">
-              <div className={cn("mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4", activeTheme.classes.primaryBg)}>
-                <BriefcaseBusiness className={cn("h-7 w-7", activeTheme.classes.primaryText)} />
+              
+              <div className="pt-2 text-center">
+                <Button variant="outline" asChild>
+                  <Link href="/dashboard/post-job">
+                    View All Job Listings
+                  </Link>
+                </Button>
               </div>
-              <p className="text-gray-700 text-lg font-medium mb-2">
-                No active jobs
-              </p>
-              <p className="text-sm text-gray-500 max-w-md mx-auto mb-6">
-                Post a job to attract talented professionals to your business.
-              </p>
-              <Button className={cn(activeTheme.classes.primaryButton, activeTheme.classes.primaryButtonHover, "shadow-sm")} asChild>
-                <Link href="/dashboard/post-job" tabIndex={0}>
-                  Post a Job
-                </Link>
-              </Button>
             </div>
           )}
         </CardContent>
