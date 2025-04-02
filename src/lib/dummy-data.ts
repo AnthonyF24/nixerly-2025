@@ -129,6 +129,7 @@ export const dummyBusinesses: IBusiness[] = [
     industry: ["Construction", "General Contracting", "Commercial Development"],
     location: "San Francisco, CA",
     verified: true,
+    profileComplete: 90,
   },
   {
     id: "b2",
@@ -138,6 +139,7 @@ export const dummyBusinesses: IBusiness[] = [
     industry: ["Renovations", "Residential Construction", "Historic Restoration"],
     location: "New York, NY",
     verified: true,
+    profileComplete: 75,
   },
   {
     id: "b3",
@@ -148,6 +150,7 @@ export const dummyBusinesses: IBusiness[] = [
     industry: ["Green Construction", "Sustainable Development", "LEED Projects"],
     location: "Seattle, WA",
     verified: false,
+    profileComplete: 60,
   },
 ];
 
@@ -251,22 +254,24 @@ export const locationsList = [
 
 // Industries list
 export const industriesList = [
-  "Technology",
-  "Software Development",
-  "Design",
-  "Marketing",
-  "Finance",
-  "Healthcare",
-  "Education",
-  "E-commerce",
-  "Media",
-  "Entertainment",
-  "Consulting",
-  "Real Estate",
-  "Manufacturing",
-  "Retail",
-  "Transportation",
-  "Energy",
-  "Hospitality",
-  "Non-profit"
+  "Construction",
+  "General Contracting",
+  "Commercial Development",
+  "Renovations",
+  "Residential Construction",
+  "Historic Restoration",
+  "Green Construction",
+  "Sustainable Development",
+  "LEED Projects",
+  "Electrical Contracting",
+  "Plumbing Services",
+  "HVAC Installation",
+  "Roofing",
+  "Masonry",
+  "Interior Design",
+  "Landscaping",
+  "Architecture",
+  "Engineering",
+  "Property Management",
+  "Real Estate Development"
 ]; 

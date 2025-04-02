@@ -51,10 +51,34 @@ export const BusinessProfileForm = () => {
   const handleSubmit = (data: BusinessProfileFormValues) => {
     if (!business) return;
     
+    // Calculate profile completion percentage
+    let completionItems = 0;
+    let totalItems = 5; // name, email, description, location, industry
+    
+    if (data.name) completionItems++;
+    if (data.email) completionItems++;
+    if (data.description) completionItems++;
+    if (data.location) completionItems++;
+    if (data.industry.length > 0) completionItems++;
+    
+    // Add phone and website to calculation if provided
+    if (data.phone) {
+      completionItems++;
+      totalItems++;
+    }
+    
+    if (data.website) {
+      completionItems++;
+      totalItems++;
+    }
+    
+    const profileComplete = Math.round((completionItems / totalItems) * 100);
+    
     // Update business data
     setBusiness({
       ...business,
       ...data,
+      profileComplete,
     });
   };
   
@@ -74,8 +98,8 @@ export const BusinessProfileForm = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)}>
         <div className="space-y-8">
-          <Card>
-            <CardHeader>
+          <Card className="border-t-4 border-t-blue-500 hover:shadow-md transition-shadow">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
               <CardTitle>Business Information</CardTitle>
               <CardDescription>
                 Update your business profile details
@@ -208,8 +232,8 @@ export const BusinessProfileForm = () => {
             </CardContent>
           </Card>
           
-          <Card id="industry">
-            <CardHeader>
+          <Card id="industry" className="border-t-4 border-t-purple-500 hover:shadow-md transition-shadow">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
               <CardTitle>Business Industry</CardTitle>
               <CardDescription>
                 Select the industries that best describe your business
@@ -251,13 +275,11 @@ export const BusinessProfileForm = () => {
                           <Badge 
                             key={ind} 
                             variant="outline" 
-                            className={`
-                              cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors
-                              ${form.getValues().industry.includes(ind) ? 'bg-primary text-primary-foreground' : ''}
-                            `}
-                            onClick={() => form.getValues().industry.includes(ind) ? removeIndustry(ind) : addIndustry(ind)}
+                            className="py-1 px-2 cursor-pointer hover:bg-blue-50"
+                            onClick={() => addIndustry(ind)}
                             tabIndex={0}
-                            onKeyDown={(e) => e.key === 'Enter' && (form.getValues().industry.includes(ind) ? removeIndustry(ind) : addIndustry(ind))}
+                            onKeyDown={(e) => e.key === 'Enter' && addIndustry(ind)}
+                            aria-label={`Add ${ind} industry`}
                           >
                             {ind}
                           </Badge>
@@ -265,53 +287,35 @@ export const BusinessProfileForm = () => {
                       </div>
                     </div>
                     
-                    <FormMessage className="mt-2" />
+                    <FormMessage className="mt-4" />
                   </FormItem>
                 )}
               />
             </CardContent>
           </Card>
           
-          <Card id="verification">
-            <CardHeader>
-              <CardTitle>Business Verification</CardTitle>
+          <Card id="jobs" className="border-t-4 border-t-green-500 hover:shadow-md transition-shadow">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
+              <CardTitle>Job Listings</CardTitle>
               <CardDescription>
-                Verify your business to build trust with professionals
+                Manage your current job listings
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="rounded-lg border p-4">
-                <h3 className="font-medium">Verification Status</h3>
-                <div className="mt-2 flex items-center">
-                  <Badge variant={business?.verified ? "default" : "outline"}>
-                    {business?.verified ? "Verified" : "Not Verified"}
-                  </Badge>
-                  
-                  {!business?.verified && (
-                    <Button variant="link" className="ml-4" size="sm">
-                      Request Verification
-                    </Button>
-                  )}
-                </div>
-                
-                <p className="text-sm text-muted-foreground mt-4">
-                  Verified businesses appear higher in search results and enjoy greater trust from professionals.
-                </p>
-                
-                {!business?.verified && (
-                  <div className="mt-4">
-                    <Button variant="outline" className="w-full py-6 border-dashed">
-                      <Upload className="h-5 w-5 mr-2" />
-                      Upload Business Documents
-                    </Button>
-                  </div>
-                )}
+            <CardContent className="py-6">
+              <div className="text-center p-6 bg-muted/20 rounded-lg">
+                <p className="text-muted-foreground mb-4">Post your first job to start finding professionals</p>
+                <Button asChild>
+                  <a href="/dashboard/post-job" tabIndex={0}>Post a Job</a>
+                </Button>
               </div>
             </CardContent>
           </Card>
           
           <div className="flex justify-end">
-            <Button type="submit" size="lg">
+            <Button 
+              type="submit" 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
               Save Changes
             </Button>
           </div>

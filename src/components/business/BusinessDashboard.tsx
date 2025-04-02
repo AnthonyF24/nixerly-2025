@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,9 @@ import {
   ArrowRight,
   TrendingUp,
   BarChart,
-  Activity
+  Activity,
+  Users,
+  Palette
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { dummyJobs, dummyProfessionals } from "@/lib/dummy-data";
@@ -29,9 +31,12 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ColorTheme, businessThemes } from "@/lib/theme-utils";
 
 export const BusinessDashboard = () => {
   const { business } = useAppStore();
+  const [activeTheme, setActiveTheme] = useState<ColorTheme>(businessThemes[0]);
 
   if (!business) {
     return (
@@ -88,22 +93,48 @@ export const BusinessDashboard = () => {
   const completedTasks = tasks.filter(task => task.completed).length;
   const completionPercentage = (completedTasks / tasks.length) * 100;
 
+  // Quick action links
+  const quickActions = [
+    { 
+      title: "Post a New Job", 
+      description: "Create a job listing to attract professionals", 
+      href: "/dashboard/post-job", 
+      icon: <Plus className="h-5 w-5 text-white" />,
+      colorClass: "bg-blue-600 hover:bg-blue-700 text-white" 
+    },
+    { 
+      title: "Find Professionals", 
+      description: "Search for skilled professionals by expertise", 
+      href: "/dashboard/find-professionals", 
+      icon: <Users className="h-5 w-5 text-purple-700" />,
+      colorClass: "bg-purple-100 hover:bg-purple-200 text-purple-700 border border-purple-200" 
+    },
+    { 
+      title: "Edit Business Profile", 
+      description: "Update your business information", 
+      href: "/dashboard/profile", 
+      icon: <Building2 className="h-5 w-5 text-teal-700" />,
+      colorClass: "bg-teal-100 hover:bg-teal-200 text-teal-700 border border-teal-200" 
+    }
+  ];
+
   return (
-    <div className="space-y-8">
-      <div className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-lg p-6 shadow-sm">
+    <div className="space-y-6">
+      {/* Welcome section with brand color customizer */}
+      <div className={cn("rounded-xl border p-6 shadow-sm", activeTheme.classes.headerGradient)}>
         <div className="flex flex-col md:flex-row gap-6 md:items-center md:justify-between">
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-blue-200 shadow-md">
+            <Avatar className={cn("h-16 w-16 border-2 shadow-md", activeTheme.classes.primaryBorder)}>
               <AvatarImage src={business.logoUrl} alt={business.name} />
-              <AvatarFallback className="bg-blue-50 text-blue-600 text-lg">
+              <AvatarFallback className={cn("text-lg", activeTheme.classes.primaryBg, activeTheme.classes.primaryText)}>
                 {business.name?.charAt(0) || 'B'}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {business.name}
+              <h1 className={cn("text-2xl md:text-3xl font-bold tracking-tight", activeTheme.classes.textGradient)}>
+                Welcome, {business.name}
               </h1>
-              <p className="text-muted-foreground flex items-center gap-1">
+              <p className="text-gray-500 flex items-center gap-1 mt-1">
                 <Building2 className="h-4 w-4" />
                 <span>{business.industry || "Business"}</span>
                 {business.location && (
@@ -116,33 +147,154 @@ export const BusinessDashboard = () => {
               </p>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
-            <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm" asChild>
-              <Link href="/dashboard/post-job" tabIndex={0}>
-                <Plus className="h-4 w-4 mr-2" />
-                Post New Job
-              </Link>
-            </Button>
-          </div>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <Palette className="h-4 w-4" />
+                <span>Brand Colors</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-4">
+              <h3 className="font-medium mb-2">Choose Dashboard Theme</h3>
+              <div className="grid grid-cols-1 gap-2">
+                {businessThemes.map((theme) => (
+                  <Button 
+                    key={theme.name}
+                    variant="outline" 
+                    size="sm"
+                    className={cn(
+                      "justify-start text-sm font-normal h-10",
+                      activeTheme.name === theme.name && "ring-2 ring-blue-500"
+                    )}
+                    onClick={() => setActiveTheme(theme)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <div className={`w-4 h-4 rounded-full bg-${theme.primaryColor}-500`} />
+                        <div className={`w-4 h-4 rounded-full bg-${theme.secondaryColor}-500`} />
+                        <div className={`w-4 h-4 rounded-full bg-${theme.accentColor}-500`} />
+                      </div>
+                      <span>{theme.name} Theme</span>
+                    </div>
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Choose colors that match your business brand identity.
+              </p>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
-      {business.profileComplete < 100 && (
-        <Card className="overflow-hidden border-blue-200/50 shadow-md">
-          <CardHeader className="pb-3 bg-blue-50">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Activity className="h-5 w-5 text-blue-600" />
+      {/* Quick actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {quickActions.map((action, index) => (
+          <Card key={index} className={cn("border shadow-sm hover:shadow-md transition-shadow", activeTheme.classes.primaryBorder)}>
+            <Link href={action.href} className="block h-full">
+              <CardContent className="p-0">
+                <div className="flex items-start p-4 h-full">
+                  <div className={cn("rounded-full p-3 mr-4", action.colorClass)}>
+                    {action.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-800">{action.title}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{action.description}</p>
+                  </div>
+                  <ArrowRight className={cn("h-5 w-5 self-center", activeTheme.classes.primaryText)} />
+                </div>
+              </CardContent>
+            </Link>
+          </Card>
+        ))}
+      </div>
+
+      {/* Dashboard metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className={cn("border shadow-sm", activeTheme.classes.primaryBgLight, activeTheme.classes.primaryBorder)}>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-2">
+              <div className="bg-green-100 p-2 rounded-lg border border-green-200">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+              </div>
+              <Badge variant="outline" className="text-green-600 bg-green-50 border-green-200">Active</Badge>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mt-2">{activeJobs.length}</h2>
+            <p className="text-gray-500 text-sm">Active Job Listings</p>
+            <div className="mt-4">
+              <Link 
+                href="/dashboard/manage-jobs" 
+                className={cn("text-sm hover:underline flex items-center gap-1", activeTheme.classes.primaryText)}
+              >
+                View Jobs <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={cn("border shadow-sm", activeTheme.classes.accentBg, activeTheme.classes.accentBorder)}>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-2">
+              <div className="bg-yellow-100 p-2 rounded-lg border border-yellow-200">
+                <FileEdit className="h-5 w-5 text-yellow-600" />
+              </div>
+              <Badge variant="outline" className="text-yellow-600 bg-yellow-50 border-yellow-200">Draft</Badge>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mt-2">{draftJobs.length}</h2>
+            <p className="text-gray-500 text-sm">Job Drafts</p>
+            <div className="mt-4">
+              <Link 
+                href="/dashboard/manage-jobs" 
+                className={cn("text-sm hover:underline flex items-center gap-1", activeTheme.classes.primaryText)}
+              >
+                Edit Drafts <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={cn("border shadow-sm", activeTheme.classes.secondaryBgLight, activeTheme.classes.secondaryBorder)}>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-2">
+              <div className={cn("p-2 rounded-lg", activeTheme.classes.secondaryBg, activeTheme.classes.secondaryBorder)}>
+                <Users className={cn("h-5 w-5", activeTheme.classes.secondaryText)} />
+              </div>
+              <Badge variant="outline" className={cn("", activeTheme.classes.secondaryText, activeTheme.classes.secondaryBg, activeTheme.classes.secondaryBorder)}>
+                Matches
+              </Badge>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mt-2">{matchingProfessionals.length}</h2>
+            <p className="text-gray-500 text-sm">Matching Professionals</p>
+            <div className="mt-4">
+              <Link 
+                href="/dashboard/find-professionals" 
+                className={cn("text-sm hover:underline flex items-center gap-1", activeTheme.classes.primaryText)}
+              >
+                Find Professionals <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Profile completion card - only show if not 100% complete */}
+      {completionPercentage < 100 && (
+        <Card className={cn("border shadow-sm", activeTheme.classes.primaryBorder)}>
+          <CardHeader className={cn("pb-3", activeTheme.classes.primaryBg)}>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Activity className={cn("h-5 w-5", activeTheme.classes.primaryText)} />
               Complete Your Business Profile
             </CardTitle>
-            <CardDescription className="text-base">
-              Your profile is <span className="font-medium text-blue-600">{completionPercentage.toFixed(0)}%</span> complete. 
+            <CardDescription>
+              Your profile is <span className={cn("font-medium", activeTheme.classes.primaryText)}>{completionPercentage.toFixed(0)}%</span> complete. 
               Complete all tasks to improve visibility to professionals.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <Progress 
               value={completionPercentage} 
-              className="h-2.5 bg-blue-100" 
+              className="h-2.5 bg-blue-100"
               aria-label="Profile completion progress"
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
@@ -152,18 +304,24 @@ export const BusinessDashboard = () => {
                   <div 
                     key={task.id}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg transition-colors",
-                      task.completed ? "bg-green-50" : "bg-blue-50/50 hover:bg-blue-50"
+                      "flex items-center gap-3 p-3 rounded-lg transition-colors border",
+                      task.completed 
+                        ? "bg-green-50 border-green-200" 
+                        : `bg-white ${activeTheme.classes.primaryBorder} ${activeTheme.classes.primaryHover}`
                     )}
                   >
                     <div className="flex-shrink-0">
                       <div className={cn(
                         "h-9 w-9 rounded-full flex items-center justify-center",
-                        task.completed ? "bg-green-100" : "bg-blue-100"
+                        task.completed 
+                          ? "bg-green-100" 
+                          : activeTheme.classes.primaryBg
                       )}>
                         <Icon className={cn(
                           "h-5 w-5",
-                          task.completed ? "text-green-600" : "text-blue-600"
+                          task.completed 
+                            ? "text-green-600" 
+                            : activeTheme.classes.primaryText
                         )} />
                       </div>
                     </div>
@@ -172,7 +330,7 @@ export const BusinessDashboard = () => {
                         href={task.href}
                         className={cn(
                           "text-sm font-medium hover:underline flex items-center gap-1",
-                          task.completed ? "text-green-700" : "text-blue-700"
+                          task.completed ? "text-green-700" : activeTheme.classes.primaryText
                         )}
                         tabIndex={0}
                       >
@@ -183,14 +341,6 @@ export const BusinessDashboard = () => {
                         <p className="text-xs text-green-600 mt-0.5">Completed</p>
                       )}
                     </div>
-                    <div className="flex-shrink-0">
-                      <CheckCircle 
-                        className={cn(
-                          "h-5 w-5",
-                          task.completed ? "text-green-500" : "text-blue-200 stroke-[0.5]"
-                        )} 
-                      />
-                    </div>
                   </div>
                 );
               })}
@@ -199,421 +349,230 @@ export const BusinessDashboard = () => {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-blue-200/50 shadow-md bg-gradient-to-b from-blue-50 to-transparent">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              Active Jobs
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{activeJobs.length}</div>
-            <p className="text-muted-foreground text-sm mt-1">Currently accepting applications</p>
-          </CardContent>
-        </Card>
-        <Card className="border-blue-200/50 shadow-md bg-gradient-to-b from-teal-50 to-transparent">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <FileEdit className="h-5 w-5 text-teal-500" />
-              Drafts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{draftJobs.length}</div>
-            <p className="text-muted-foreground text-sm mt-1">Unpublished job posts</p>
-          </CardContent>
-        </Card>
-        <Card className="border-blue-200/50 shadow-md bg-gradient-to-b from-purple-50 to-transparent">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <BriefcaseBusiness className="h-5 w-5 text-purple-600" />
-              Total Jobs
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{businessJobs.length}</div>
-            <p className="text-muted-foreground text-sm mt-1">All-time job listings</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="overflow-hidden border-blue-200/50 shadow-md">
-          <CardHeader className="bg-blue-50 pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <BriefcaseBusiness className="h-5 w-5 text-blue-600" />
-                  Job Listings
-                </CardTitle>
-                <CardDescription className="text-base">
-                  Manage your job postings
-                </CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" className="text-sm text-blue-600 hover:bg-blue-50/70" asChild>
-                <Link href="/dashboard/manage-jobs" tabIndex={0} aria-label="View all job listings">
-                  View All
-                  <ArrowRight className="h-3 w-3 ml-1" />
-                </Link>
-              </Button>
+      {/* Recent job listings */}
+      <Card className={cn("border shadow-sm", activeTheme.classes.primaryBorder)}>
+        <CardHeader className={cn("pb-4", activeTheme.classes.primaryBgLight)}>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <BriefcaseBusiness className={cn("h-5 w-5", activeTheme.classes.primaryText)} />
+                Recent Job Listings
+              </CardTitle>
+              <CardDescription>
+                Manage your active job postings
+              </CardDescription>
             </div>
-          </CardHeader>
-          
-          <div className="border-b">
-            <Tabs defaultValue="active">
-              <div className="px-4">
-                <TabsList className="w-full justify-start border-b-0 bg-transparent p-0 h-auto mb-[-1px]">
-                  <TabsTrigger 
-                    value="active" 
-                    className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-700 data-[state=active]:bg-transparent"
-                  >
-                    Active ({activeJobs.length})
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="drafts" 
-                    className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-700 data-[state=active]:bg-transparent"
-                  >
-                    Drafts ({draftJobs.length})
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="closed" 
-                    className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-700 data-[state=active]:bg-transparent"
-                  >
-                    Closed ({closedJobs.length})
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-              
-              <TabsContent value="active" className="p-0 m-0">
-                <div className="divide-y">
-                  {activeJobs.length > 0 ? (
-                    activeJobs.map(job => (
-                      <div key={job.id} className="flex items-start justify-between p-4 hover:bg-blue-50/50 transition-colors">
-                        <div>
-                          <h3 className="font-medium">{job.title}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-xs flex items-center gap-1 border-blue-200">
-                              <MapPin className="h-3 w-3" />
-                              {job.location || "Remote"}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              Posted on {new Date(job.datePosted).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-1.5 mt-2">
-                            {job.skills.slice(0, 3).map(skill => (
-                              <Badge 
-                                key={skill} 
-                                variant="secondary" 
-                                className="text-xs bg-blue-50 text-blue-700 border-blue-100"
-                              >
-                                {skill}
-                              </Badge>
-                            ))}
-                            {job.skills.length > 3 && (
-                              <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700">
-                                +{job.skills.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon" className="text-blue-600 hover:bg-blue-50" asChild>
-                            <Link 
-                              href={`/dashboard/manage-jobs/${job.id}/edit`}
-                              aria-label="Edit job"
-                              tabIndex={0}
-                            >
-                              <FileEdit className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                          <Button variant="ghost" size="icon" className="text-red-500 hover:bg-red-50" asChild>
-                            <Link 
-                              href={`/dashboard/manage-jobs/${job.id}/close`}
-                              aria-label="Close job"
-                              tabIndex={0}
-                            >
-                              <Archive className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-10 text-center">
-                      <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                        <BriefcaseBusiness className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                      <p className="text-muted-foreground text-lg font-medium mb-2">
-                        No active jobs
-                      </p>
-                      <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
-                        Post a job to attract talented professionals to your business.
-                      </p>
-                      <Button className="shadow-sm" asChild>
-                        <Link href="/dashboard/post-job" tabIndex={0}>
-                          Post a Job
-                        </Link>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="drafts" className="p-0 m-0">
-                <div className="divide-y">
-                  {draftJobs.length > 0 ? (
-                    draftJobs.map(job => (
-                      <div key={job.id} className="flex items-start justify-between p-4 hover:bg-blue-50/50 transition-colors">
-                        <div>
-                          <h3 className="font-medium">{job.title}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-xs flex items-center gap-1 border-blue-200">
-                              <MapPin className="h-3 w-3" />
-                              {job.location || "Remote"}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              Created on {new Date(job.datePosted).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon" className="text-blue-600 hover:bg-blue-50" asChild>
-                            <Link 
-                              href={`/dashboard/manage-jobs/${job.id}/edit`}
-                              aria-label="Edit draft"
-                              tabIndex={0}
-                            >
-                              <FileEdit className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                          <Button variant="ghost" size="icon" className="text-green-600 hover:bg-green-50" asChild>
-                            <Link 
-                              href={`/dashboard/manage-jobs/${job.id}/publish`}
-                              aria-label="Publish job"
-                              tabIndex={0}
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-10 text-center">
-                      <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                        <FileEdit className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                      <p className="text-muted-foreground text-lg font-medium mb-2">
-                        No draft jobs
-                      </p>
-                      <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                        Drafts will appear here when you save job posts without publishing.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="closed" className="p-0 m-0">
-                <div className="divide-y">
-                  {closedJobs.length > 0 ? (
-                    closedJobs.map(job => (
-                      <div key={job.id} className="flex items-start justify-between p-4 hover:bg-blue-50/50 transition-colors">
-                        <div>
-                          <h3 className="font-medium">{job.title}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-xs flex items-center gap-1 border-blue-200">
-                              <MapPin className="h-3 w-3" />
-                              {job.location || "Remote"}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              Posted on {new Date(job.datePosted).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon" className="text-blue-600 hover:bg-blue-50" asChild>
-                            <Link 
-                              href={`/dashboard/manage-jobs/${job.id}/repost`}
-                              aria-label="Repost job"
-                              tabIndex={0}
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-10 text-center">
-                      <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                        <Archive className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                      <p className="text-muted-foreground text-lg font-medium mb-2">
-                        No closed jobs
-                      </p>
-                      <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                        Closed or completed jobs will be archived here.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-          
-          <CardFooter className="border-t bg-blue-50/20 px-6 py-3">
-            <Button variant="ghost" className="text-sm text-blue-700 hover:bg-blue-50" asChild>
-              <Link href="/dashboard/manage-jobs" tabIndex={0}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={cn("text-sm", activeTheme.classes.primaryText, activeTheme.classes.primaryHover, activeTheme.classes.primaryBorder)} 
+              asChild
+            >
+              <Link href="/dashboard/manage-jobs" tabIndex={0} aria-label="View all job listings">
                 View All Jobs
+                <ArrowRight className="h-3 w-3 ml-1" />
               </Link>
             </Button>
-          </CardFooter>
-        </Card>
-
-        <Card className="border-blue-200/50 shadow-md overflow-hidden">
-          <CardHeader className="bg-purple-50 pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <User className="h-5 w-5 text-purple-600" />
-                  Find Professionals
-                </CardTitle>
-                <CardDescription className="text-base">
-                  Search for professionals by skills and location
-                </CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" className="text-sm text-purple-600 hover:bg-purple-50/70" asChild>
-                <Link href="/dashboard/find-professionals" tabIndex={0} aria-label="View all professionals">
-                  View All
-                  <ArrowRight className="h-3 w-3 ml-1" />
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-5">
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search professionals by skills or location..." 
-                className="pl-9 border-blue-200/50"
-              />
-            </div>
-            
-            <div className="space-y-3">
-              {matchingProfessionals.length > 0 ? (
-                matchingProfessionals.map(pro => (
-                  <div key={pro.id} className="flex items-start gap-3 p-3 rounded-lg border border-blue-200/50 bg-blue-50/20 hover:bg-blue-50/40 transition-colors">
-                    <Avatar className="h-10 w-10 border border-blue-200">
-                      <AvatarImage src={pro.avatarUrl} alt={pro.name} />
-                      <AvatarFallback className="bg-blue-50 text-blue-600">
-                        {pro.name.split(" ").map(n => n[0]).join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium">{pro.name}</h3>
-                        {pro.verified && (
-                          <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200 text-xs">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Verified
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+          </div>
+        </CardHeader>
+        
+        <CardContent className="p-0">
+          {activeJobs.length > 0 ? (
+            <div className="divide-y border-t">
+              {activeJobs.slice(0, 3).map(job => (
+                <div key={job.id} className={cn("flex items-start justify-between p-4 transition-colors", activeTheme.classes.primaryHover)}>
+                  <div>
+                    <h3 className="font-medium text-gray-800">{job.title}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge 
+                        variant="outline" 
+                        className={cn("text-xs flex items-center gap-1", activeTheme.classes.primaryBorder, activeTheme.classes.primaryText)}
+                      >
                         <MapPin className="h-3 w-3" />
-                        {pro.location || "Remote"}
-                      </p>
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {pro.skills.slice(0, 3).map(skill => 
-                          uniqueSkills.includes(skill) ? (
-                            <Badge 
-                              key={skill} 
-                              className="text-xs bg-blue-50 text-blue-700 border-blue-100"
-                            >
-                              {skill}
-                            </Badge>
-                          ) : (
-                            <Badge 
-                              key={skill} 
-                              variant="secondary" 
-                              className="text-xs"
-                            >
-                              {skill}
-                            </Badge>
-                          )
-                        )}
-                        {pro.skills.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{pro.skills.length - 3}
-                          </Badge>
-                        )}
-                      </div>
+                        {job.location || "Remote"}
+                      </Badge>
+                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        Posted on {new Date(job.datePosted).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {job.skills.slice(0, 2).map(skill => (
+                        <Badge 
+                          key={skill} 
+                          variant="secondary" 
+                          className={cn("text-xs", activeTheme.classes.primaryBg, activeTheme.classes.primaryText, activeTheme.classes.primaryBorder)}
+                        >
+                          {skill}
+                        </Badge>
+                      ))}
+                      {job.skills.length > 2 && (
+                        <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+                          +{job.skills.length - 2}
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="p-6 text-center">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <User className="h-8 w-8 text-muted-foreground" />
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="icon" className={cn(activeTheme.classes.primaryText, activeTheme.classes.primaryHover)} asChild>
+                      <Link 
+                        href={`/dashboard/manage-jobs/${job.id}/edit`}
+                        aria-label="Edit job"
+                        tabIndex={0}
+                      >
+                        <FileEdit className="h-4 w-4" />
+                      </Link>
+                    </Button>
                   </div>
-                  <p className="text-muted-foreground text-lg font-medium mb-2">
-                    No matching professionals
-                  </p>
-                  <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
-                    Post a job with relevant skills to attract professionals.
-                  </p>
-                  <Button className="shadow-sm" asChild>
-                    <Link href="/dashboard/post-job" tabIndex={0}>
-                      Post a Job
+                </div>
+              ))}
+              {activeJobs.length > 3 && (
+                <div className="p-4 text-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={cn(activeTheme.classes.primaryBorder, activeTheme.classes.primaryText)} 
+                    asChild
+                  >
+                    <Link href="/dashboard/manage-jobs">
+                      View All {activeJobs.length} Active Jobs
                     </Link>
                   </Button>
                 </div>
               )}
             </div>
-          </CardContent>
-          <CardFooter className="border-t bg-purple-50/20 px-6 py-3">
-            <Button variant="ghost" className="text-sm text-purple-700 hover:bg-purple-50" asChild>
-              <Link href="/dashboard/find-professionals" tabIndex={0}>
-                View All Professionals
-              </Link>
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
+          ) : (
+            <div className="p-8 text-center border-t">
+              <div className={cn("mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4", activeTheme.classes.primaryBg)}>
+                <BriefcaseBusiness className={cn("h-7 w-7", activeTheme.classes.primaryText)} />
+              </div>
+              <p className="text-gray-700 text-lg font-medium mb-2">
+                No active jobs
+              </p>
+              <p className="text-sm text-gray-500 max-w-md mx-auto mb-6">
+                Post a job to attract talented professionals to your business.
+              </p>
+              <Button className={cn(activeTheme.classes.primaryButton, activeTheme.classes.primaryButtonHover, "shadow-sm")} asChild>
+                <Link href="/dashboard/post-job" tabIndex={0}>
+                  Post a Job
+                </Link>
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      <Card className="border-blue-200/50 shadow-md overflow-hidden">
-        <CardHeader className="bg-teal-50 pb-4">
+      {/* Matching professionals */}
+      <Card className={cn("border shadow-sm", activeTheme.classes.secondaryBorder)}>
+        <CardHeader className={cn("pb-4", activeTheme.classes.secondaryBgLight)}>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <BarChart className="h-5 w-5 text-teal-600" />
-                Business Insights
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <User className={cn("h-5 w-5", activeTheme.classes.secondaryText)} />
+                Matching Professionals
               </CardTitle>
-              <CardDescription className="text-base">
-                Data to help you improve your hiring process
+              <CardDescription>
+                Professionals that match your job requirements
               </CardDescription>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-5">
-          <div className="text-center py-8">
-            <TrendingUp className="h-10 w-10 text-teal-500/30 mx-auto mb-3" />
-            <h3 className="text-lg font-medium">No Analytics Available</h3>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
-              Post jobs and receive applications to see analytics and insights about your hiring process.
-            </p>
-            <Button className="mt-4 shadow-sm bg-teal-600 hover:bg-teal-700 text-white" asChild>
-              <Link href="/dashboard/post-job" tabIndex={0}>
-                Post a New Job
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={cn(
+                "text-sm", 
+                activeTheme.classes.secondaryText, 
+                activeTheme.classes.secondaryHover, 
+                activeTheme.classes.secondaryBorder
+              )} 
+              asChild
+            >
+              <Link href="/dashboard/find-professionals" tabIndex={0} aria-label="Find professionals">
+                Find More
+                <ArrowRight className="h-3 w-3 ml-1" />
               </Link>
             </Button>
           </div>
+        </CardHeader>
+        
+        <CardContent className="p-0">
+          {matchingProfessionals.length > 0 ? (
+            <div className="divide-y border-t">
+              {matchingProfessionals.map(pro => (
+                <div key={pro.id} className={cn("flex items-start gap-4 p-4 transition-colors", activeTheme.classes.secondaryHover)}>
+                  <Avatar className={cn("h-12 w-12 border", activeTheme.classes.secondaryBorder)}>
+                    <AvatarImage src={pro.avatarUrl} alt={pro.name} />
+                    <AvatarFallback className={cn(activeTheme.classes.secondaryBg, activeTheme.classes.secondaryText)}>
+                      {pro.name.split(" ").map(n => n[0]).join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-800 truncate">{pro.name}</h3>
+                    <p className="text-sm text-gray-600 mt-0.5 truncate">{pro.title}</p>
+                    
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {pro.skills.slice(0, 3).map(skill => (
+                        <Badge 
+                          key={skill} 
+                          variant="outline" 
+                          className={cn(
+                            "text-xs", 
+                            activeTheme.classes.secondaryBorder, 
+                            activeTheme.classes.secondaryText, 
+                            activeTheme.classes.secondaryBg
+                          )}
+                        >
+                          {skill}
+                        </Badge>
+                      ))}
+                      {pro.skills.length > 3 && (
+                        <Badge variant="outline" className="text-xs border-gray-200 bg-gray-50 text-gray-700">
+                          +{pro.skills.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    className={cn(
+                      activeTheme.classes.secondaryBg, 
+                      activeTheme.classes.secondaryText, 
+                      activeTheme.classes.secondaryHover, 
+                      activeTheme.classes.secondaryBorder
+                    )} 
+                    asChild
+                  >
+                    <Link href={`/dashboard/find-professionals/${pro.id}`}>
+                      View Profile
+                    </Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center border-t">
+              <div className={cn("mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4", activeTheme.classes.secondaryBg)}>
+                <User className={cn("h-7 w-7", activeTheme.classes.secondaryText)} />
+              </div>
+              <p className="text-gray-700 text-lg font-medium mb-2">
+                No matching professionals
+              </p>
+              <p className="text-sm text-gray-500 max-w-md mx-auto mb-6">
+                Post a job with relevant skills to attract professionals.
+              </p>
+              <Button 
+                className={cn(
+                  activeTheme.classes.secondaryButton, 
+                  activeTheme.classes.secondaryButtonHover, 
+                  "shadow-sm"
+                )} 
+                asChild
+              >
+                <Link href="/dashboard/post-job" tabIndex={0}>
+                  Post a Job
+                </Link>
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -47,6 +47,7 @@ export interface IBusiness {
   industry: string[];
   location?: string;
   verified: boolean;
+  profileComplete?: number;
 }
 
 export interface IJob {

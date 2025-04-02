@@ -6,6 +6,8 @@ import { useAppStore } from "@/lib/store";
 import JobFilters from "@/components/jobs/JobFilters";
 import JobList from "@/components/jobs/JobList";
 import { dummyProfessionals } from "@/lib/dummy-data";
+import { Badge } from "@/components/ui/badge";
+import { Briefcase } from "lucide-react";
 
 const JobBoardPage = () => {
   const { setProfessional, setUserType, setIsAuthenticated } = useAppStore();
@@ -21,11 +23,23 @@ const JobBoardPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Job Board</h1>
-          <p className="text-muted-foreground">
-            Browse and apply for jobs that match your skills and preferences
-          </p>
+        <div className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 p-6 rounded-lg border border-blue-100">
+          <div className="flex items-start gap-4">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-lg text-white">
+              <Briefcase className="h-6 w-6" />
+            </div>
+            <div>
+              <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 mb-2">
+                Jobs
+              </Badge>
+              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Job Board
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Browse and apply for jobs that match your skills and preferences
+              </p>
+            </div>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

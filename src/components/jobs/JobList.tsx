@@ -13,6 +13,12 @@ interface JobListProps {
   showFilters?: boolean;
 }
 
+// Helper function to format dates consistently
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+};
+
 const JobList: React.FC<JobListProps> = ({ limit, showFilters = true }) => {
   const { jobFilters } = useAppStore();
   const [visibleJobs, setVisibleJobs] = useState(limit || 6);
@@ -68,7 +74,11 @@ const JobList: React.FC<JobListProps> = ({ limit, showFilters = true }) => {
       
       {hasMoreJobs && (
         <div className="flex justify-center mt-6">
-          <Button variant="outline" onClick={loadMore}>
+          <Button 
+            variant="outline" 
+            onClick={loadMore}
+            className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300"
+          >
             Load More
           </Button>
         </div>
@@ -79,7 +89,7 @@ const JobList: React.FC<JobListProps> = ({ limit, showFilters = true }) => {
 
 const JobCard: React.FC<{ job: IJob }> = ({ job }) => {
   return (
-    <Card>
+    <Card className="border-gray-200 hover:border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
@@ -89,7 +99,11 @@ const JobCard: React.FC<{ job: IJob }> = ({ job }) => {
               {job.businessName}
             </CardDescription>
           </div>
-          <Badge className={job.status === 'open' ? 'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-800/20 dark:text-green-400' : 'bg-muted'}>
+          <Badge className={
+            job.status === 'open' 
+              ? 'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-800/20 dark:text-blue-400' 
+              : 'bg-muted'
+          }>
             {job.status === 'open' ? 'Open' : job.status === 'closed' ? 'Closed' : 'Draft'}
           </Badge>
         </div>
@@ -109,13 +123,13 @@ const JobCard: React.FC<{ job: IJob }> = ({ job }) => {
             
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span>Posted {new Date(job.datePosted).toLocaleDateString()}</span>
+              <span>Posted {formatDate(job.datePosted)}</span>
             </div>
           </div>
           
           <div className="flex flex-wrap gap-1 mt-3">
             {job.skills.map(skill => (
-              <Badge key={skill} variant="secondary" className="text-xs">
+              <Badge key={skill} variant="secondary" className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100">
                 {skill}
               </Badge>
             ))}
@@ -123,19 +137,25 @@ const JobCard: React.FC<{ job: IJob }> = ({ job }) => {
         </div>
       </CardContent>
       
-      <CardFooter className="border-t bg-muted/50 px-6 py-3 flex justify-between">
+      <CardFooter className="border-t bg-blue-50/30 px-6 py-3 flex justify-between">
         <div className="text-xs text-muted-foreground">
           {job.deadline && (
             <span>
-              Apply by {new Date(job.deadline).toLocaleDateString()}
+              Apply by {formatDate(job.deadline)}
             </span>
           )}
         </div>
         
-        <Button size="sm" disabled={job.status !== 'open'} asChild>
+        <Button 
+          size="sm" 
+          disabled={job.status !== 'open'} 
+          className={job.status === 'open' ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm" : ""}
+          asChild
+        >
           <Link 
             href={`/jobs/${job.id}`}
             tabIndex={0}
+            aria-label={`View details for ${job.title}`}
           >
             View Details
           </Link>

@@ -23,7 +23,7 @@ const JobFilters = () => {
   };
   
   const handleLocationChange = (location: string) => {
-    setJobFilters({ location });
+    setJobFilters({ location: location === 'any' ? undefined : location });
   };
   
   const handleStatusChange = (status: 'open' | 'closed' | 'draft' | null) => {
@@ -42,21 +42,21 @@ const JobFilters = () => {
   const displayedSkills = showMoreSkills ? skillsList : skillsList.slice(0, 10);
   
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center">
+    <Card className="border-gray-200 shadow-sm h-full">
+      <CardHeader className="pb-3 bg-gradient-to-r from-blue-600/10 to-purple-600/10 border-b">
+        <CardTitle className="text-lg flex items-center text-blue-700">
           <Filter className="h-5 w-5 mr-2" />
           Filter Jobs
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-5 pt-5">
         <div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search jobs..."
-              className="pl-9"
+              className="pl-9 border-blue-200 focus-visible:ring-blue-300/30"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -64,11 +64,13 @@ const JobFilters = () => {
         </div>
         
         <div>
-          <h3 className="text-sm font-medium mb-2">Job Status</h3>
+          <h3 className="text-sm font-medium mb-2 text-blue-800">Job Status</h3>
           <div className="flex flex-wrap gap-2">
             <Badge 
               variant={jobFilters.status === 'open' ? 'default' : 'outline'}
-              className="cursor-pointer"
+              className={jobFilters.status === 'open' 
+                ? "cursor-pointer bg-blue-600" 
+                : "cursor-pointer border-blue-300 text-blue-700 hover:border-blue-400"}
               onClick={() => handleStatusChange(jobFilters.status === 'open' ? null : 'open')}
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && handleStatusChange(jobFilters.status === 'open' ? null : 'open')}
@@ -77,7 +79,9 @@ const JobFilters = () => {
             </Badge>
             <Badge 
               variant={jobFilters.status === 'closed' ? 'default' : 'outline'}
-              className="cursor-pointer"
+              className={jobFilters.status === 'closed' 
+                ? "cursor-pointer bg-blue-600" 
+                : "cursor-pointer border-blue-300 text-blue-700 hover:border-blue-400"}
               onClick={() => handleStatusChange(jobFilters.status === 'closed' ? null : 'closed')}
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && handleStatusChange(jobFilters.status === 'closed' ? null : 'closed')}
@@ -86,7 +90,9 @@ const JobFilters = () => {
             </Badge>
             <Badge 
               variant={jobFilters.status === 'draft' ? 'default' : 'outline'}
-              className="cursor-pointer"
+              className={jobFilters.status === 'draft' 
+                ? "cursor-pointer bg-blue-600" 
+                : "cursor-pointer border-blue-300 text-blue-700 hover:border-blue-400"}
               onClick={() => handleStatusChange(jobFilters.status === 'draft' ? null : 'draft')}
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && handleStatusChange(jobFilters.status === 'draft' ? null : 'draft')}
@@ -97,16 +103,16 @@ const JobFilters = () => {
         </div>
         
         <div>
-          <h3 className="text-sm font-medium mb-2">Location</h3>
+          <h3 className="text-sm font-medium mb-2 text-blue-800">Location</h3>
           <Select
-            value={jobFilters.location}
+            value={jobFilters.location || "any"}
             onValueChange={handleLocationChange}
           >
-            <SelectTrigger>
+            <SelectTrigger className="border-blue-200 focus:ring-blue-300/30">
               <SelectValue placeholder="Select location" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any Location</SelectItem>
+              <SelectItem value="any">Any Location</SelectItem>
               {locationsList.map(location => (
                 <SelectItem key={location} value={location}>
                   {location}
@@ -117,10 +123,10 @@ const JobFilters = () => {
         </div>
         
         <div>
-          <h3 className="text-sm font-medium mb-2">Skills</h3>
+          <h3 className="text-sm font-medium mb-2 text-blue-800">Skills</h3>
           <div className="flex flex-wrap gap-1 mb-1">
             {jobFilters.skills.map(skill => (
-              <Badge key={skill} className="inline-flex items-center gap-1 py-1">
+              <Badge key={skill} className="inline-flex items-center gap-1 py-1 bg-blue-100 text-blue-800 hover:bg-blue-200">
                 {skill}
                 <X
                   className="h-3 w-3 cursor-pointer"
@@ -140,6 +146,7 @@ const JobFilters = () => {
                   id={`skill-${skill}`}
                   checked={jobFilters.skills.includes(skill)}
                   onCheckedChange={() => handleSkillToggle(skill)}
+                  className="border-blue-300 text-blue-600 focus:ring-blue-300/30 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                 />
                 <label
                   htmlFor={`skill-${skill}`}
@@ -154,7 +161,7 @@ const JobFilters = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className="mt-2 h-8 text-xs w-full justify-between"
+            className="mt-2 h-8 text-xs w-full justify-between text-blue-700 hover:bg-blue-50 hover:text-blue-800"
             onClick={() => setShowMoreSkills(!showMoreSkills)}
           >
             {showMoreSkills ? 'Show Less' : 'Show More'}
@@ -167,11 +174,11 @@ const JobFilters = () => {
         </div>
       </CardContent>
       
-      <CardFooter className="border-t bg-muted/50 px-6 py-3">
+      <CardFooter className="border-t bg-blue-50/30 px-6 py-3">
         <Button 
-          variant="ghost" 
+          variant="outline" 
           size="sm" 
-          className="w-full"
+          className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300"
           onClick={clearFilters}
           disabled={jobFilters.skills.length === 0 && !jobFilters.location && !jobFilters.status}
         >
