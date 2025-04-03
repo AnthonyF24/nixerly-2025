@@ -274,7 +274,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <div className="flex items-center gap-3 p-4 bg-blue-50/50 border-b">
                 <Avatar className="h-11 w-11 border-2 border-blue-200">
                   <AvatarImage 
-                    src={userType === "professional" ? "/avatars/professional.jpg" : "/avatars/business.jpg"} 
+                    src={userType === "professional" ? "/avatars/business-b2.jpg" : "/avatars/business-b1.jpg"} 
                     alt={userName || ""} 
                   />
                   <AvatarFallback className="bg-blue-100 text-blue-700">{userInitials}</AvatarFallback>
@@ -514,7 +514,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   >
                     <Avatar className="h-8 w-8 shrink-0">
                       <AvatarImage 
-                        src={userType === "professional" ? "/avatars/professional.jpg" : "/avatars/business.jpg"} 
+                        src={userType === "professional" ? "/avatars/business-b2.jpg" : "/avatars/business-b1.jpg"} 
                         alt={userName || ""} 
                       />
                       <AvatarFallback>{userInitials}</AvatarFallback>

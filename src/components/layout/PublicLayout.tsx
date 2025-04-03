@@ -51,7 +51,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
                     <Button variant="ghost" className="p-0 h-8 w-8 rounded-full" aria-label="Account menu">
                       <Avatar className="h-8 w-8">
                         <AvatarImage 
-                          src={userType === "professional" ? "/images/avatars/placeholder.jpg" : "/images/avatars/business.jpg"} 
+                          src={userType === "professional" ? "/avatars/business-b3.jpg" : "/avatars/business-b1.jpg"} 
                           alt={userName || ""} 
                         />
                         <AvatarFallback>{userInitials}</AvatarFallback>

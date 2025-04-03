@@ -266,7 +266,7 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
             </h2>
             <span className="text-sm text-gray-500">Step {currentStep} of 3</span>
           </div>
-          <Progress value={(currentStep / 3) * 100} className="h-2" />
+          <Progress value={(currentStep / 3) * 100} className="h-2" indicatorClassName="bg-green-600" />
 
           <div className="flex justify-between mt-4 text-xs text-gray-500">
             <div className={cn("flex flex-col items-center", currentStep >= 1 ? "text-blue-600 font-medium" : "")}>
@@ -535,16 +535,16 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
                                   <Button 
                                     variant="outline" 
                                     role="combobox" 
-                                    className="w-full justify-between"
+                                    className="w-full max-w-[200px] justify-between"
                                   >
                                     {field.value ? field.value : "Select a country"}
                                     <ChevronDownIcon className="ml-2 h-4 w-4 opacity-50" />
                                   </Button>
                                 </FormControl>
                               </PopoverTrigger>
-                              <PopoverContent className="w-[calc(var(--radix-popover-trigger-width)*0.5)] max-w-[200px] p-0" side="bottom" align="start">
+                              <PopoverContent className="w-[200px] p-0" side="bottom" align="start">
                                 <Command className="w-full">
-                                  <CommandInput placeholder="Search country..." className="text-sm" />
+                                  <CommandInput placeholder="Search..." className="text-sm" />
                                   <CommandEmpty>No country found.</CommandEmpty>
                                   <CommandGroup className="max-h-[200px] overflow-auto">
                                     {countriesList.map((country) => (
@@ -681,17 +681,17 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
                                 <Button 
                                   variant="outline" 
                                   role="combobox" 
-                                  className="w-full justify-between"
+                                  className="w-full max-w-[180px] justify-between"
                                 >
-                                  {field.value === "hourly" ? "Hourly Rate (€/hr)" : 
-                                   field.value === "daily" ? "Daily Rate (€/day)" : 
-                                   field.value === "annual" ? "Annual Salary (€/year)" : 
+                                  {field.value === "hourly" ? "Hourly Rate" : 
+                                   field.value === "daily" ? "Daily Rate" : 
+                                   field.value === "annual" ? "Annual Salary" : 
                                    "Select type"}
                                   <ChevronDownIcon className="ml-2 h-4 w-4 opacity-50" />
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent className="w-[calc(var(--radix-popover-trigger-width)*0.9)] max-w-[260px] p-0" side="bottom" align="start">
+                            <PopoverContent className="w-[180px] p-0" side="bottom" align="start">
                               <Command className="w-full">
                                 <CommandGroup>
                                   <CommandItem value="hourly" onSelect={() => field.onChange("hourly")} className="text-sm">
@@ -701,7 +701,7 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
                                         field.value === "hourly" ? "opacity-100" : "opacity-0"
                                       )}
                                     />
-                                    Hourly Rate (€/hr)
+                                    Hourly Rate
                                   </CommandItem>
                                   <CommandItem value="daily" onSelect={() => field.onChange("daily")} className="text-sm">
                                     <CheckIcon
@@ -710,7 +710,7 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
                                         field.value === "daily" ? "opacity-100" : "opacity-0"
                                       )}
                                     />
-                                    Daily Rate (€/day)
+                                    Daily Rate
                                   </CommandItem>
                                   <CommandItem value="annual" onSelect={() => field.onChange("annual")} className="text-sm">
                                     <CheckIcon
@@ -719,7 +719,7 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
                                         field.value === "annual" ? "opacity-100" : "opacity-0"
                                       )}
                                     />
-                                    Annual Salary (€/year)
+                                    Annual Salary
                                   </CommandItem>
                                 </CommandGroup>
                               </Command>
