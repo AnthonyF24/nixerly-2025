@@ -23,7 +23,8 @@ const businessProfileSchema = z.object({
   }),
   phone: z.string().optional(),
   description: z.string().optional(),
-  location: z.string().optional(),
+  town: z.string().optional(),
+  country: z.string().optional(),
   website: z.string().url().optional().or(z.literal("")),
   industry: z.array(z.string()).min(1, {
     message: "Please select at least one industry.",
@@ -42,7 +43,8 @@ export const BusinessProfileForm = () => {
       email: business?.email || "",
       phone: business?.phone || "",
       description: business?.description || "",
-      location: business?.location || "",
+      town: business?.town || "",
+      country: business?.country || "",
       website: "",
       industry: business?.industry || [],
     }
@@ -53,12 +55,13 @@ export const BusinessProfileForm = () => {
     
     // Calculate profile completion percentage
     let completionItems = 0;
-    let totalItems = 5; // name, email, description, location, industry
+    let totalItems = 6; // name, email, description, town, country, industry
     
     if (data.name) completionItems++;
     if (data.email) completionItems++;
     if (data.description) completionItems++;
-    if (data.location) completionItems++;
+    if (data.town) completionItems++;
+    if (data.country) completionItems++;
     if (data.industry.length > 0) completionItems++;
     
     // Add phone and website to calculation if provided
@@ -71,6 +74,11 @@ export const BusinessProfileForm = () => {
       completionItems++;
       totalItems++;
     }
+
+    // Create formatted location from town and country
+    const location = data.town && data.country 
+      ? `${data.town}, ${data.country}` 
+      : data.town || data.country || '';
     
     const profileComplete = Math.round((completionItems / totalItems) * 100);
     
@@ -78,6 +86,7 @@ export const BusinessProfileForm = () => {
     setBusiness({
       ...business,
       ...data,
+      location,
       profileComplete,
     });
   };
@@ -205,23 +214,32 @@ export const BusinessProfileForm = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Business Location</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your business location" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {locationsList.map(location => (
-                          <SelectItem key={location} value={location}>
-                            {location}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="town"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input placeholder="Town/City" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="country"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input placeholder="Country" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormDescription>
                       This helps match you with local professionals.
                     </FormDescription>

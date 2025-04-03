@@ -26,7 +26,8 @@ const profileFormSchema = z.object({
   }),
   phone: z.string().optional(),
   bio: z.string().optional(),
-  location: z.string().optional(),
+  town: z.string().optional(),
+  country: z.string().optional(),
   availability: z.boolean().default(false),
   skills: z.array(z.string()).min(1, {
     message: "Please select at least one skill.",
@@ -50,7 +51,8 @@ export const ProfileForm = () => {
       email: professional?.email || "",
       phone: professional?.phone || "",
       bio: professional?.bio || "",
-      location: professional?.location || "",
+      town: professional?.town || "",
+      country: professional?.country || "",
       availability: professional?.availability || false,
       skills: professional?.skills || [],
     }
@@ -61,18 +63,24 @@ export const ProfileForm = () => {
     
     // Calculate profile completion percentage
     let completionItems = 0;
-    let totalItems = 5; // name, email, bio, location, skills
+    let totalItems = 6; // name, email, bio, town, country, skills
     
     if (data.name) completionItems++;
     if (data.email) completionItems++;
     if (data.bio) completionItems++;
-    if (data.location) completionItems++;
+    if (data.town) completionItems++;
+    if (data.country) completionItems++;
     if (data.skills.length > 0) completionItems++;
     
     // Add certifications and portfolio to calculation
     totalItems += 2;
     if (professional.certifications.length > 0) completionItems++;
     if (professional.portfolio.length > 0) completionItems++;
+
+    // Create formatted location from town and country
+    const location = data.town && data.country 
+      ? `${data.town}, ${data.country}` 
+      : data.town || data.country || '';
     
     const profileComplete = Math.round((completionItems / totalItems) * 100);
     
@@ -80,6 +88,7 @@ export const ProfileForm = () => {
     setProfessional({
       ...professional,
       ...data,
+      location,
       profileComplete,
     });
   };
@@ -123,6 +132,7 @@ export const ProfileForm = () => {
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        className={field.value ? "data-[state=checked]:bg-green-500" : "data-[state=unchecked]:bg-red-500"}
                       />
                     </FormControl>
                   </FormItem>
@@ -200,23 +210,32 @@ export const ProfileForm = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Location</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your location" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {locationsList.map(location => (
-                          <SelectItem key={location} value={location}>
-                            {location}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="town"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input placeholder="Town/City" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="country"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input placeholder="Country" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormDescription>
                       This helps match you with nearby job opportunities.
                     </FormDescription>

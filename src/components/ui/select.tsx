@@ -122,7 +122,15 @@ function SelectItem({
           <CheckIcon className="size-4" />
         </SelectPrimitive.ItemIndicator>
       </span>
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemText>
+        {typeof children === 'string' ? children : (
+          React.Children.only(children) ? children : React.Children.map(children, (child, index) => 
+            React.isValidElement(child) ? 
+              React.cloneElement(child, { key: `select-item-${value}-${index}` }) : 
+              child
+          )
+        )}
+      </SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
   )
 }

@@ -11,14 +11,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { 
   User, 
-  ScrollText, 
   FileText, 
   Award, 
   Image, 
   Building, 
   Globe, 
-  Newspaper
+  Newspaper,
+  MapPin,
+  CheckCircle,
+  ArrowRight
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
 
 const ProfilePage = () => {
   const { userType, professional, business, setProfessional, setBusiness, setUserType, setIsAuthenticated } = useAppStore();
@@ -89,7 +95,11 @@ const ProfilePage = () => {
               <span>Profile completion</span>
               <span>{profileCompletionPercentage}%</span>
             </div>
-            <Progress value={profileCompletionPercentage} className="h-2 bg-blue-400/30" />
+            <Progress 
+              value={profileCompletionPercentage} 
+              className="h-3 bg-blue-400/60 border border-white/40 rounded-md overflow-hidden"
+              indicatorClassName="bg-green-500" 
+            />
           </div>
         </div>
         
@@ -137,37 +147,16 @@ const ProfilePage = () => {
               <TabsList className="w-full border-b rounded-t-lg rounded-b-none p-0 bg-gradient-to-r from-blue-50 to-purple-50">
                 <TabsTrigger 
                   value="profile" 
-                  className="rounded-tl-lg border-r py-3 flex-1 data-[state=active]:bg-white data-[state=active]:text-blue-700"
+                  className="rounded-tl-lg rounded-tr-lg py-3 flex-1 data-[state=active]:bg-white data-[state=active]:text-blue-700"
                   aria-label="View profile"
                 >
                   <User className="h-4 w-4 mr-2" />
                   Profile
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="preview" 
-                  className="rounded-tr-lg py-3 flex-1 data-[state=active]:bg-white data-[state=active]:text-blue-700"
-                  aria-label="Preview your profile"
-                >
-                  <ScrollText className="h-4 w-4 mr-2" />
-                  Preview
-                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="profile" className="p-0 m-0">
                 {userType === "professional" ? <ProfileForm /> : <BusinessProfileForm />}
-              </TabsContent>
-              
-              <TabsContent value="preview" className="p-6 m-0">
-                <div className="rounded-lg border border-blue-100 p-6 text-center">
-                  <h3 className="text-lg font-medium mb-2">Profile Preview</h3>
-                  <p className="text-gray-500 mb-4">This is how your profile appears to {userType === "professional" ? "businesses" : "professionals"}.</p>
-                  
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-                    <p className="text-sm text-gray-600">
-                      Preview your profile as seen by others. Make sure all information is accurate and showcases your {userType === "professional" ? "skills" : "business"} effectively.
-                    </p>
-                  </div>
-                </div>
               </TabsContent>
             </Tabs>
           </div>

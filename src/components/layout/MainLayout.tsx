@@ -55,8 +55,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                     (href !== '/' && pathname?.startsWith(href));
     
     return isActive
-      ? "text-blue-700 bg-blue-50 border-b-2 border-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-      : "text-gray-700 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-md text-sm font-medium transition-colors";
+      ? "text-blue-700 font-medium relative px-3 py-2 rounded-md text-sm transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-blue-600 after:rounded-full"
+      : "text-gray-700 hover:text-blue-700 font-medium relative px-3 py-2 rounded-md text-sm transition-all duration-300 hover:after:absolute hover:after:bottom-0 hover:after:left-0 hover:after:right-0 hover:after:h-0.5 hover:after:bg-blue-400 hover:after:rounded-full";
   };
   
   // Function to get mobile nav link class based on current path
@@ -65,24 +65,24 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                     (href !== '/' && pathname?.startsWith(href));
     
     return isActive
-      ? "block text-blue-700 bg-blue-50 border-l-4 border-blue-600 px-3 py-2 rounded-md text-base font-medium transition-colors"
-      : "block text-gray-700 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-md text-base font-medium transition-colors";
+      ? "block text-blue-700 bg-blue-50/70 border-l-4 border-blue-600 px-3 py-3 rounded-md text-base font-medium transition-colors duration-300"
+      : "block text-gray-700 hover:text-blue-700 hover:bg-blue-50/50 px-3 py-3 rounded-md text-base font-medium transition-colors duration-300";
   };
   
   return (
     <div className="flex flex-col min-h-screen overflow-auto">
       {/* Navbar */}
-      <nav className="bg-white shadow-sm sticky top-0 z-50">
+      <nav className="bg-white backdrop-blur-sm bg-opacity-90 border-b border-gray-100 sticky top-0 z-50 transition-all duration-300">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-16 md:h-20">
             <div className="flex-shrink-0">
-              <Link href="/" className="flex items-center py-2">
-                <span className="text-2xl md:text-3xl font-bold text-blue-600 tracking-tight">Nixerly</span>
+              <Link href="/" className="flex items-center py-2 group transition-all duration-300">
+                <span className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 tracking-tight group-hover:from-blue-700 group-hover:to-purple-700 transition-all duration-300">Nixerly</span>
               </Link>
             </div>
             
             <div className="hidden md:block">
-              <div className="ml-10 flex items-center space-x-6">
+              <div className="ml-10 flex items-center space-x-8">
                 <Link 
                   href="/" 
                   className={getLinkClass("/")}
@@ -127,22 +127,22 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             </div>
             
             <div className="hidden md:block">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-4">
                 {isAuthenticated ? (
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300"
+                    className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300 shadow-sm transition-all duration-300"
                     onClick={() => useAppStore.getState().logout()}
                   >
                     Logout
                   </Button>
                 ) : (
                   <>
-                    <Button variant="outline" size="sm" className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300" asChild>
+                    <Button variant="outline" size="sm" className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300 shadow-sm transition-all duration-300" asChild>
                       <Link href="/auth/login">Login</Link>
                     </Button>
-                    <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm" asChild>
+                    <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm hover:shadow-md transition-all duration-300" asChild>
                       <Link href="/auth/signup">Sign Up</Link>
                     </Button>
                   </>
@@ -152,7 +152,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             
             <div className="md:hidden flex items-center">
               <button
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-blue-700 hover:bg-blue-50 focus:outline-none transition-colors"
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors duration-300"
                 aria-expanded={isMenuOpen}
                 aria-label="Toggle menu"
                 onClick={handleToggleMenu}
@@ -194,8 +194,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           </div>
         </div>
         
-        <div className={`${isMenuOpen ? "block" : "hidden"} md:hidden bg-white pb-3 px-4 shadow-lg`}>
-          <div className="space-y-1 pt-2 pb-3">
+        <div className={`${isMenuOpen ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0"} md:hidden bg-white overflow-hidden transition-all duration-300 ease-in-out shadow-lg`}>
+          <div className="space-y-1 pt-2 pb-3 px-4">
             <Link 
               href="/" 
               className={getMobileLinkClass("/")}
@@ -243,24 +243,27 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             </Link>
           </div>
           
-          <div className="pt-4 pb-3 border-t border-gray-200">
+          <div className="pt-4 pb-3 border-t border-gray-200 px-4">
             <div className="flex items-center space-x-3">
               {isAuthenticated ? (
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300"
-                  onClick={() => useAppStore.getState().logout()}
+                  className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300 shadow-sm transition-all duration-300"
+                  onClick={() => {
+                    useAppStore.getState().logout();
+                    setIsMenuOpen(false);
+                  }}
                 >
                   Logout
                 </Button>
               ) : (
                 <>
-                  <Button variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300" asChild>
-                    <Link href="/auth/login">Login</Link>
+                  <Button variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300 shadow-sm transition-all duration-300" asChild>
+                    <Link href="/auth/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
                   </Button>
-                  <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm" asChild>
-                    <Link href="/auth/signup">Sign Up</Link>
+                  <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm hover:shadow-md transition-all duration-300" asChild>
+                    <Link href="/auth/signup" onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
                   </Button>
                 </>
               )}

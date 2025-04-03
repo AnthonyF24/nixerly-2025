@@ -13,6 +13,8 @@ export interface IProfessional {
   portfolio?: IPortfolioItem[];
   availability: boolean;
   location?: string;
+  town?: string;
+  country?: string;
   profileComplete: number;
   verified: boolean;
   jobApplications?: IJobApplication[]; // Track job applications
@@ -57,6 +59,8 @@ export interface IBusiness {
   description?: string;
   industry: string[];
   location?: string;
+  town?: string;
+  country?: string;
   verified: boolean;
   profileComplete?: number;
   logoUrl?: string;
