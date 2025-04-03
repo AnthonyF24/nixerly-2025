@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,8 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAppStore } from "@/lib/store";
-import { locationsList, skillsList } from "@/lib/dummy-data";
-import { Calendar as CalendarIcon, X, Plus, ArrowRight, ArrowLeft, Check, Search, MapPin, Briefcase, Euro, BadgeCheck, Save, Clock } from "lucide-react";
+import { locationsList, skillsList, countriesList } from "@/lib/dummy-data";
+import { Calendar as CalendarIcon, X, Plus, ArrowRight, ArrowLeft, Check, Search, MapPin, Briefcase, Euro, BadgeCheck, Save, Clock, ChevronDownIcon, CheckIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -23,16 +23,19 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 
 // Define form schema
 const jobFormSchema = z.object({
-  title: z.string().min(5, {
-    message: "Job title must be at least 5 characters.",
+  title: z.string().min(1, {
+    message: "Job title is required.",
   }),
   description: z.string().min(20, {
     message: "Description must be at least 20 characters.",
   }),
   location: z.string().optional(),
+  country: z.string().optional(),
+  city: z.string().optional(),
   skills: z.array(z.string()).min(1, {
     message: "Please select at least one required skill.",
   }),
@@ -58,7 +61,8 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
   const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-
+  const [debugInfo, setDebugInfo] = useState<string>("");
+  
   // Form setup
   const form = useForm<JobFormValues>({
     resolver: zodResolver(jobFormSchema),
@@ -67,6 +71,8 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
           title: job.title,
           description: job.description,
           location: job.location,
+          country: job.country || "",
+          city: job.city || "",
           skills: job.skills,
           deadline: job.deadline ? new Date(job.deadline) : undefined,
           status: job.status,
@@ -79,6 +85,8 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
           title: "",
           description: "",
           location: "",
+          country: "",
+          city: "",
           skills: [],
           deadline: undefined,
           status: "draft",
@@ -88,9 +96,31 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
           salaryType: "annual",
         },
   });
+  
+  // Debug effect to detect why button is disabled - MOVED after form initialization
+  useEffect(() => {
+    const titleLength = form.getValues().title?.length || 0;
+    const descLength = form.getValues().description?.length || 0;
+    
+    if (titleLength < 1) {
+      setDebugInfo(`Job title is required`);
+    } else if (descLength < 20) {
+      setDebugInfo(`Description needs ${20 - descLength} more characters`);
+    } else {
+      setDebugInfo("");
+    }
+    
+    console.log("Form values:", {
+      title: form.getValues().title,
+      titleLength,
+      description: form.getValues().description,
+      descLength,
+      canAdvance: titleLength >= 1 && descLength >= 20
+    });
+  }, [form.watch("title"), form.watch("description")]);
 
   // Validation check for different steps
-  const canAdvanceToStep2 = form.getValues().title.length >= 5 && form.getValues().description.length >= 20;
+  const canAdvanceToStep2 = form.getValues().title.length >= 1 && form.getValues().description.length >= 20;
   const canAdvanceToStep3 = form.getValues().skills.length >= 1;
 
   // Skills management
@@ -109,9 +139,18 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
 
   // Navigation functions
   const nextStep = () => {
-    if (currentStep === 1 && !canAdvanceToStep2) {
-      form.trigger(["title", "description"]);
-      return;
+    // Force validation on the fields
+    if (currentStep === 1) {
+      const isValid = form.trigger(["title", "description"]);
+      const titleLength = form.getValues().title?.length || 0;
+      const descLength = form.getValues().description?.length || 0;
+      const canAdvance = titleLength >= 1 && descLength >= 20;
+      
+      console.log("NextStep validation:", { isValid, titleLength, descLength, canAdvance });
+      
+      if (!canAdvance) {
+        return;
+      }
     }
     
     if (currentStep === 2 && !canAdvanceToStep3) {
@@ -149,15 +188,27 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
     setIsSubmitting(true);
     
     try {
+      // Generate a well-formatted location string
+      let locationStr = "";
+      if (data.city && data.country) {
+        locationStr = `${data.city}, ${data.country}`;
+      } else if (data.city) {
+        locationStr = data.city;
+      } else if (data.country) {
+        locationStr = data.country;
+      }
+      
       const jobData: IJob = {
         id: job?.id || uuidv4(),
         title: data.title,
         description: data.description,
         location: data.remoteOk
-          ? data.location
-            ? `${data.location} (Remote OK)`
+          ? locationStr
+            ? `${locationStr} (Remote OK)`
             : "Remote"
-          : data.location,
+          : locationStr,
+        country: data.country,
+        city: data.city,
         skills: data.skills,
         datePosted: job?.datePosted || new Date().toISOString(),
         deadline: data.deadline?.toISOString(),
@@ -298,19 +349,30 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
               </CardContent>
             </Card>
 
-            <div className="flex justify-between pt-4">
-              <Button
-                variant="outline"
-                onClick={handleSaveDraft}
-                disabled={!form.formState.isValid || isSubmitting}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save Draft
-              </Button>
-              <Button onClick={nextStep} disabled={!canAdvanceToStep2}>
-                Next: Skills
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
+            <div className="flex flex-col space-y-2">
+              {debugInfo && (
+                <div className="text-amber-600 text-sm px-2 py-1 rounded bg-amber-50 border border-amber-100">
+                  {debugInfo}
+                </div>
+              )}
+              <div className="flex justify-between pt-4">
+                <Button
+                  variant="outline"
+                  onClick={handleSaveDraft}
+                  disabled={isSubmitting}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Draft
+                </Button>
+                <Button 
+                  onClick={nextStep} 
+                  disabled={isSubmitting}
+                  className={!canAdvanceToStep2 ? "opacity-50" : ""}
+                >
+                  Next: Skills
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -453,79 +515,104 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
           <div className="space-y-6 animate-fadeIn">
             <Card>
               <CardContent className="pt-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="location"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-2 text-blue-600" />
-                          Location
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a location" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {locationsList.map((location) => (
-                              <SelectItem key={location} value={location}>
-                                {location}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <div className="space-y-4">
+                  <h3 className="text-base font-medium flex items-center">
+                    <MapPin className="h-4 w-4 mr-2 text-blue-600" />
+                    Location Details
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white border border-transparent">
+                      <FormField
+                        control={form.control}
+                        name="country"
+                        render={({ field }) => (
+                          <FormItem className="w-full">
+                            <FormLabel>Country</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button 
+                                    variant="outline" 
+                                    role="combobox" 
+                                    className="w-full justify-between"
+                                  >
+                                    {field.value ? field.value : "Select a country"}
+                                    <ChevronDownIcon className="ml-2 h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[calc(var(--radix-popover-trigger-width)*0.5)] max-w-[200px] p-0" side="bottom" align="start">
+                                <Command className="w-full">
+                                  <CommandInput placeholder="Search country..." className="text-sm" />
+                                  <CommandEmpty>No country found.</CommandEmpty>
+                                  <CommandGroup className="max-h-[200px] overflow-auto">
+                                    {countriesList.map((country) => (
+                                      <CommandItem
+                                        key={country}
+                                        value={country}
+                                        onSelect={(currentValue) => {
+                                          field.onChange(currentValue);
+                                        }}
+                                        className="text-sm"
+                                      >
+                                        <CheckIcon
+                                          className={cn(
+                                            "mr-2 h-3.5 w-3.5",
+                                            field.value === country ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                        {country}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
+                    <div className="bg-white border border-transparent">
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem className="w-full">
+                            <FormLabel>City / Town</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="e.g. Dublin, Cork, Galway" 
+                                {...field} 
+                                className="w-full"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                  
                   <FormField
                     control={form.control}
-                    name="deadline"
+                    name="remoteOk"
                     render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="flex items-center">
-                          <Clock className="h-4 w-4 mr-2 text-blue-600" />
-                          Application Deadline
-                        </FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) =>
-                                date < new Date(new Date().setHours(0, 0, 0, 0))
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Remote Work Available</FormLabel>
+                          <FormDescription>
+                            Check this if candidates can work remotely for this position.
+                          </FormDescription>
+                        </div>
                       </FormItem>
                     )}
                   />
@@ -533,21 +620,45 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
 
                 <FormField
                   control={form.control}
-                  name="remoteOk"
+                  name="deadline"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Remote Work Available</FormLabel>
-                        <FormDescription>
-                          Check this if candidates can work remotely for this position.
-                        </FormDescription>
-                      </div>
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="flex items-center">
+                        <Clock className="h-4 w-4 mr-2 text-blue-600" />
+                        Application Deadline
+                      </FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date < new Date(new Date().setHours(0, 0, 0, 0))
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -562,23 +673,58 @@ export const JobPostWizard: React.FC<JobPostWizardProps> = ({ job, onSuccess }) 
                       control={form.control}
                       name="salaryType"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="w-full">
                           <FormLabel>Salary Type</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="hourly">Hourly Rate (€/hr)</SelectItem>
-                              <SelectItem value="daily">Daily Rate (€/day)</SelectItem>
-                              <SelectItem value="annual">Annual Salary (€/year)</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button 
+                                  variant="outline" 
+                                  role="combobox" 
+                                  className="w-full justify-between"
+                                >
+                                  {field.value === "hourly" ? "Hourly Rate (€/hr)" : 
+                                   field.value === "daily" ? "Daily Rate (€/day)" : 
+                                   field.value === "annual" ? "Annual Salary (€/year)" : 
+                                   "Select type"}
+                                  <ChevronDownIcon className="ml-2 h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[calc(var(--radix-popover-trigger-width)*0.9)] max-w-[260px] p-0" side="bottom" align="start">
+                              <Command className="w-full">
+                                <CommandGroup>
+                                  <CommandItem value="hourly" onSelect={() => field.onChange("hourly")} className="text-sm">
+                                    <CheckIcon
+                                      className={cn(
+                                        "mr-2 h-3.5 w-3.5",
+                                        field.value === "hourly" ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    Hourly Rate (€/hr)
+                                  </CommandItem>
+                                  <CommandItem value="daily" onSelect={() => field.onChange("daily")} className="text-sm">
+                                    <CheckIcon
+                                      className={cn(
+                                        "mr-2 h-3.5 w-3.5",
+                                        field.value === "daily" ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    Daily Rate (€/day)
+                                  </CommandItem>
+                                  <CommandItem value="annual" onSelect={() => field.onChange("annual")} className="text-sm">
+                                    <CheckIcon
+                                      className={cn(
+                                        "mr-2 h-3.5 w-3.5",
+                                        field.value === "annual" ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    Annual Salary (€/year)
+                                  </CommandItem>
+                                </CommandGroup>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                           <FormMessage />
                         </FormItem>
                       )}

@@ -251,7 +251,44 @@ export const skillsList = [
   "Building Codes", "Safety Compliance", "OSHA Standards", "Permit Processing", "Inspections"
 ];
 
-// Locations list
+// Countries list for location selection
+export const countriesList = [
+  "Ireland",
+  "United Kingdom",
+  "United States",
+  "Canada",
+  "Australia",
+  "Germany",
+  "France",
+  "Spain",
+  "Italy",
+  "Netherlands",
+  "Belgium",
+  "Sweden",
+  "Norway",
+  "Denmark",
+  "Finland",
+  "Portugal",
+  "Switzerland",
+  "Austria",
+  "Greece",
+  "Poland",
+  "Czech Republic",
+  "Hungary",
+  "Romania",
+  "Bulgaria",
+  "Croatia",
+  "Slovakia",
+  "Slovenia",
+  "Estonia",
+  "Latvia",
+  "Lithuania",
+  "Luxembourg",
+  "Malta",
+  "Cyprus"
+];
+
+// Locations list for job location
 export const locationsList = [
   "San Francisco, CA",
   "New York, NY",

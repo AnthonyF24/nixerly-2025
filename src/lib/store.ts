@@ -73,6 +73,8 @@ export interface IJob {
   businessId: string;
   businessName: string;
   location?: string;
+  country?: string;
+  city?: string;
   skills: string[];
   datePosted: string;
   deadline?: string;
