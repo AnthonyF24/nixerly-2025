@@ -1,10 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { useAppStore } from '@/lib/store';
 import { dummyJobs, dummyBusinesses } from '@/lib/dummy-data';
-import { Briefcase, MapPin, Calendar, Building, DollarSign, SendIcon, ExternalLink } from 'lucide-react';
+import { 
+  Briefcase, 
+  MapPin, 
+  Calendar, 
+  Building, 
+  DollarSign, 
+  SendIcon, 
+  ExternalLink,
+  ArrowUpDown,
+  List,
+  LayoutGrid
+} from 'lucide-react';
 import Link from 'next/link';
 import { IJob } from '@/lib/store';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,15 +29,25 @@ interface JobListProps {
   showFilters?: boolean;
 }
 
-// Helper function to format dates consistently
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
-};
+type ViewMode = 'list' | 'grid';
+type SortOption = 'newest' | 'oldest' | 'relevance';
 
 const JobList: React.FC<JobListProps> = ({ limit, showFilters = true }) => {
   const { jobFilters } = useAppStore();
   const [visibleJobs, setVisibleJobs] = useState(limit || 6);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Simulate loading state for better UX
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 600);
+    
+    return () => clearTimeout(timer);
+  }, [jobFilters]);
   
   // Apply filters
   const filteredJobs = dummyJobs.filter(job => {
@@ -34,7 +57,7 @@ const JobList: React.FC<JobListProps> = ({ limit, showFilters = true }) => {
     }
     
     // Filter by location if specified
-    if (jobFilters.location && !job.location?.includes(jobFilters.location)) {
+    if (jobFilters.location && !job.location?.toLowerCase().includes(jobFilters.location.toLowerCase())) {
       return false;
     }
     
@@ -46,12 +69,54 @@ const JobList: React.FC<JobListProps> = ({ limit, showFilters = true }) => {
     return true;
   });
   
-  const displayedJobs = filteredJobs.slice(0, visibleJobs);
-  const hasMoreJobs = filteredJobs.length > visibleJobs;
+  // Sort jobs
+  const sortedJobs = [...filteredJobs].sort((a, b) => {
+    if (sortBy === 'newest') {
+      return new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime();
+    } else if (sortBy === 'oldest') {
+      return new Date(a.datePosted).getTime() - new Date(b.datePosted).getTime();
+    } else {
+      // Relevance - prioritize jobs with more matching skills
+      const aMatchCount = a.skills.filter(skill => jobFilters.skills.includes(skill)).length;
+      const bMatchCount = b.skills.filter(skill => jobFilters.skills.includes(skill)).length;
+      return bMatchCount - aMatchCount;
+    }
+  });
+  
+  const displayedJobs = sortedJobs.slice(0, visibleJobs);
+  const hasMoreJobs = sortedJobs.length > visibleJobs;
   
   const loadMore = () => {
     setVisibleJobs(prev => prev + 6);
   };
+  
+  if (isLoading) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="border border-gray-200 rounded-lg p-4 animate-pulse">
+                <div className="flex gap-4">
+                  <div className="h-16 w-16 bg-gray-200 rounded-md"></div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                  </div>
+                </div>
+                <div className="flex mt-4 gap-2">
+                  <div className="h-6 bg-gray-200 rounded w-16"></div>
+                  <div className="h-6 bg-gray-200 rounded w-16"></div>
+                  <div className="h-6 bg-gray-200 rounded w-16"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   
   if (filteredJobs.length === 0) {
     return (
@@ -69,9 +134,54 @@ const JobList: React.FC<JobListProps> = ({ limit, showFilters = true }) => {
   
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4">
+      <Card className="border-gray-200">
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="text-sm text-muted-foreground">
+              <span className="font-medium text-gray-900">{filteredJobs.length}</span> jobs found
+            </div>
+            
+            <div className="flex items-center gap-4">
+              {/* Sort options */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm whitespace-nowrap">Sort by:</span>
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                  <SelectTrigger className="w-[140px] h-8 text-sm border-blue-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="oldest">Oldest First</SelectItem>
+                    <SelectItem value="relevance">Relevance</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* View mode toggle */}
+              <div className="flex border border-gray-200 rounded-md overflow-hidden">
+                <button
+                  className={`px-2 py-1 ${viewMode === 'list' ? 'bg-blue-50 text-blue-600' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                  onClick={() => setViewMode('list')}
+                  aria-label="List view"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+                <button
+                  className={`px-2 py-1 ${viewMode === 'grid' ? 'bg-blue-50 text-blue-600' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                  onClick={() => setViewMode('grid')}
+                  aria-label="Grid view"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'space-y-4'}`}>
         {displayedJobs.map(job => (
-          <JobCard key={job.id} job={job} />
+          <JobCard key={job.id} job={job} viewMode={viewMode} />
         ))}
       </div>
       
@@ -82,7 +192,7 @@ const JobList: React.FC<JobListProps> = ({ limit, showFilters = true }) => {
             onClick={loadMore}
             className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300"
           >
-            Load More
+            Load More Jobs
           </Button>
         </div>
       )}
@@ -90,184 +200,181 @@ const JobList: React.FC<JobListProps> = ({ limit, showFilters = true }) => {
   );
 };
 
-const JobCard: React.FC<{ job: IJob }> = ({ job }) => {
-  const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
-  const { professional, hasAppliedToJob } = useAppStore();
+interface JobCardProps {
+  job: IJob;
+  viewMode: ViewMode;
+}
+
+const JobCard: React.FC<JobCardProps> = ({ job, viewMode }) => {
+  const { id, title, description, businessId, businessName, location, skills, datePosted, status, salaryMin, salaryMax, salaryType } = job;
   
-  // Find associated business to get logo URL
-  const associatedBusiness = dummyBusinesses.find(b => b.id === job.businessId);
+  const business = dummyBusinesses.find(b => b.id === businessId);
   
-  // Format salary based on type and values
   const formatSalary = () => {
-    if (!job.salaryMin && !job.salaryMax) return null;
+    if (!salaryMin && !salaryMax) return null;
     
-    const currency = '€';
-    const formatNumber = (num?: number) => num?.toLocaleString();
+    const formatValue = (value: number) => `€${value.toLocaleString()}`;
+    let salaryText = '';
     
-    let prefix = '';
-    let suffix = '';
-    
-    switch(job.salaryType) {
-      case 'hourly':
-        prefix = `${currency}`;
-        suffix = '/hr';
-        break;
-      case 'daily':
-        prefix = `${currency}`;
-        suffix = '/day';
-        break;
-      case 'annual':
-        prefix = `${currency}`;
-        suffix = '/year';
-        break;
-      default:
-        prefix = `${currency}`;
+    if (salaryMin && !salaryMax) {
+      salaryText = `${formatValue(salaryMin)}+`;
+    } else if (!salaryMin && salaryMax) {
+      salaryText = `Up to ${formatValue(salaryMax)}`;
+    } else if (salaryMin && salaryMax) {
+      salaryText = `${formatValue(salaryMin)} - ${formatValue(salaryMax)}`;
     }
     
-    if (job.salaryMin && job.salaryMax) {
-      return `${prefix}${formatNumber(job.salaryMin)} - ${prefix}${formatNumber(job.salaryMax)}${suffix}`;
-    } else if (job.salaryMin) {
-      return `${prefix}${formatNumber(job.salaryMin)}${suffix}+`;
-    } else if (job.salaryMax) {
-      return `Up to ${prefix}${formatNumber(job.salaryMax)}${suffix}`;
+    if (salaryText && salaryType) {
+      salaryText += salaryType === 'hourly' ? ' per hour' : 
+                    salaryType === 'daily' ? ' per day' : 
+                    ' per year';
     }
     
-    return null;
+    return salaryText;
   };
   
-  const salaryInfo = formatSalary();
-  const businessInitial = job.businessName ? job.businessName.charAt(0) : 'B';
-  const alreadyApplied = professional ? hasAppliedToJob(job.id, professional.id) : false;
-  
-  const handleApplyClick = () => {
-    setIsApplicationModalOpen(true);
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    return `${Math.floor(diffDays / 30)} months ago`;
   };
   
-  const handleCloseModal = () => {
-    setIsApplicationModalOpen(false);
-  };
-  
-  return (
-    <>
-      <Card className="border-gray-200 hover:border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
-        <CardHeader className="pb-2">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12 border border-gray-200">
-                <AvatarImage src={associatedBusiness?.logoUrl || `/avatars/business-${job.businessId}.jpg`} alt={job.businessName} />
-                <AvatarFallback className="bg-blue-100 text-blue-700 font-medium">
-                  {businessInitial}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <CardTitle className="text-xl">{job.title}</CardTitle>
-                <CardDescription className="flex items-center mt-1">
-                  <Building className="h-4 w-4 mr-1" />
-                  {job.businessName}
-                </CardDescription>
-              </div>
-            </div>
-            <Badge className={
-              job.status === 'open' 
-                ? 'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-800/20 dark:text-blue-400' 
-                : 'bg-muted'
-            }>
-              {job.status === 'open' ? 'Open' : job.status === 'closed' ? 'Closed' : job.status === 'applied' ? 'Applied' : 'Draft'}
-            </Badge>
-          </div>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="space-y-4">
-            <p className="text-sm line-clamp-3">{job.description}</p>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
-              {job.location && (
-                <div className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="truncate">{job.location}</span>
-                </div>
-              )}
-              
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span>Posted {formatDate(job.datePosted)}</span>
-              </div>
-              
-              {salaryInfo && (
-                <div className="flex items-center text-blue-700 font-medium">
-                  <DollarSign className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span>{salaryInfo}</span>
-                </div>
-              )}
-              {!salaryInfo && (
-                <div className="flex items-center text-amber-700 font-medium">
-                  <DollarSign className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span>Compensation details on request</span>
-                </div>
-              )}
-            </div>
-            
-            <div className="flex flex-wrap gap-1 mt-3">
-              {job.skills.map(skill => (
-                <Badge key={skill} variant="secondary" className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100">
-                  {skill}
-                </Badge>
-              ))}
+  if (viewMode === 'grid') {
+    return (
+      <Link href={`/dashboard/jobs/${id}`}>
+        <div className="border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-all hover:border-blue-300 bg-white flex flex-col h-full">
+          <div className="flex items-start gap-3 mb-3">
+            <Avatar className="h-10 w-10 rounded border border-gray-200">
+              <AvatarImage src={business?.logoUrl} alt={businessName} />
+              <AvatarFallback className="bg-blue-100 text-blue-700">{businessName.substring(0, 2).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <div>
+              <h3 className="font-semibold text-gray-900">{title}</h3>
+              <p className="text-sm text-gray-600">{businessName}</p>
             </div>
           </div>
-        </CardContent>
-        
-        <CardFooter className="border-t bg-blue-50/30 px-6 py-3 flex justify-between">
-          <div className="text-xs text-muted-foreground">
-            {job.deadline && (
-              <span>
-                Apply by {formatDate(job.deadline)}
-              </span>
+          
+          <div className="space-y-2 flex-grow mb-3">
+            <div className="flex items-center text-sm text-gray-500">
+              <MapPin className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+              <span>{location || 'Remote'}</span>
+            </div>
+            {formatSalary() && (
+              <div className="flex items-center text-sm text-gray-700">
+                <DollarSign className="h-3.5 w-3.5 mr-1.5 flex-shrink-0 text-green-600" />
+                <span>{formatSalary()}</span>
+              </div>
+            )}
+            <div className="flex items-center text-sm text-gray-500">
+              <Calendar className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+              <span>Posted {formatDate(datePosted)}</span>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-1.5 mb-3 mt-auto">
+            {skills.slice(0, 3).map((skill, index) => (
+              <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-100 text-xs">
+                {skill}
+              </Badge>
+            ))}
+            {skills.length > 3 && (
+              <Badge variant="outline" className="text-xs">
+                +{skills.length - 3}
+              </Badge>
             )}
           </div>
           
-          <div className="flex gap-2">
-            <Button 
-              size="sm" 
-              variant="outline"
-              disabled={job.status !== 'open'} 
-              className="flex items-center gap-1"
-              asChild
-            >
-              <Link 
-                href={`/jobs/${job.id}`}
-                tabIndex={0}
-                aria-label={`View details for ${job.title}`}
-              >
-                <ExternalLink className="h-4 w-4" />
-                Details
-              </Link>
-            </Button>
-            
-            <Button 
-              size="sm" 
-              disabled={job.status !== 'open' || alreadyApplied} 
-              className={job.status === 'open' && !alreadyApplied ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm flex items-center gap-1" : ""}
-              onClick={handleApplyClick}
-              aria-label={`Apply for ${job.title}`}
-              tabIndex={0}
-            >
-              <SendIcon className="h-4 w-4" />
-              {alreadyApplied ? 'Applied' : 'Apply Now'}
-            </Button>
+          <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+            View Details
+          </Button>
+        </div>
+      </Link>
+    );
+  }
+  
+  return (
+    <Link href={`/dashboard/jobs/${id}`}>
+      <div className="border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-all hover:border-blue-300 bg-white">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex md:flex-col items-center md:items-start">
+            <Avatar className="h-14 w-14 rounded-md border border-gray-200">
+              <AvatarImage src={business?.logoUrl} alt={businessName} />
+              <AvatarFallback className="bg-blue-100 text-blue-700 text-lg">{businessName.substring(0, 2).toUpperCase()}</AvatarFallback>
+            </Avatar>
           </div>
-        </CardFooter>
-      </Card>
-      
-      {isApplicationModalOpen && (
-        <JobApplicationModal
-          isOpen={isApplicationModalOpen}
-          job={job}
-          onClose={handleCloseModal}
-        />
-      )}
-    </>
+          
+          <div className="flex-1">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-2">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-semibold text-lg text-gray-900">{title}</h3>
+                  <Badge className={
+                    status === 'open' 
+                      ? 'bg-green-100 text-green-800 border-green-200' 
+                      : status === 'draft' 
+                        ? 'bg-amber-100 text-amber-800 border-amber-200'
+                        : 'bg-gray-100 text-gray-800 border-gray-200'
+                  }>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-1 text-gray-700">
+                  <Building className="h-3.5 w-3.5" />
+                  <span className="text-sm">{businessName}</span>
+                </div>
+              </div>
+              
+              {formatSalary() && (
+                <div className="inline-flex items-center text-sm font-medium text-green-700 bg-green-50 px-2.5 py-1 rounded-full">
+                  <DollarSign className="h-3.5 w-3.5 mr-1" />
+                  {formatSalary()}
+                </div>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4 mt-3 text-sm text-gray-600">
+              <div className="flex items-center">
+                <MapPin className="h-4 w-4 mr-2 text-gray-500" />
+                <span>{location || 'Remote'}</span>
+              </div>
+              <div className="flex items-center">
+                <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                <span>Posted {formatDate(datePosted)}</span>
+              </div>
+            </div>
+            
+            <p className="mt-3 text-gray-600 text-sm line-clamp-2">{description}</p>
+            
+            <div className="flex flex-wrap items-center justify-between mt-4">
+              <div className="flex flex-wrap gap-1.5">
+                {skills.slice(0, 5).map((skill, index) => (
+                  <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-100 text-xs">
+                    {skill}
+                  </Badge>
+                ))}
+                {skills.length > 5 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{skills.length - 5}
+                  </Badge>
+                )}
+              </div>
+              
+              <Button size="sm" className="mt-2 sm:mt-0 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+                <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                View Details
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 };
 
