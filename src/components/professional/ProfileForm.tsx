@@ -13,9 +13,10 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { locationsList, skillsList } from "@/lib/dummy-data";
 import { Separator } from "@/components/ui/separator";
-import { X, Plus, Upload, Calendar, Eye, XCircle } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { X, Plus, Upload, Calendar, Eye, XCircle, Award, CheckCircle, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { IPortfolioItem } from "@/lib/store";
+import { Label } from "@/components/ui/label";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, {
@@ -262,13 +263,16 @@ export const ProfileForm = () => {
                         key={item.id}
                         className="group relative flex flex-col rounded-lg border overflow-hidden hover:shadow-md transition-all cursor-pointer"
                         onClick={() => setViewingPortfolioItem(item)}
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === 'Enter' && setViewingPortfolioItem(item)}
+                        aria-label={`View portfolio item: ${item.title}`}
                       >
                         <div className="relative aspect-video bg-slate-100">
                           {item.imageUrl ? (
                             <img
                               src={item.imageUrl}
                               alt={item.altText || item.title}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                           ) : (
                             <div className="flex items-center justify-center h-full bg-slate-100 text-slate-400">
@@ -283,52 +287,47 @@ export const ProfileForm = () => {
                               </svg>
                             </div>
                           )}
-                          <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="absolute bottom-3 left-3 right-3">
+                              <h3 className="font-medium text-white line-clamp-1">{item.title}</h3>
+                              <p className="text-xs text-white/80 mt-1 line-clamp-1">
+                                {new Date(item.date).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button 
-                              variant="secondary"
-                              size="sm"
-                              className="h-7 w-7 rounded-full"
+                              variant="destructive" 
+                              size="icon" 
+                              className="h-7 w-7 bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 border border-white/20"
                               onClick={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
-                                setViewingPortfolioItem(item);
+                                if (!professional) return;
+                                const newPortfolio = professional.portfolio?.filter(p => p.id !== item.id) || [];
+                                setProfessional({
+                                  ...professional,
+                                  portfolio: newPortfolio
+                                });
                               }}
                             >
-                              <Eye className="h-4 w-4" />
+                              <X className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
-                        <div className="flex-1 p-4">
-                          <h3 className="font-medium line-clamp-1">{item.title}</h3>
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {item.tags?.map((tag) => (
+                        <div className="bg-white p-3">
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {item.tags?.slice(0, 2).map((tag) => (
                               <span key={tag} className="inline-flex text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
                                 {tag}
                               </span>
                             ))}
+                            {item.tags && item.tags.length > 2 && (
+                              <span className="inline-flex text-xs px-2 py-0.5 bg-gray-100 text-gray-800 rounded-full">
+                                +{item.tags.length - 2}
+                              </span>
+                            )}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {new Date(item.date).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button 
-                            variant="destructive" 
-                            size="icon" 
-                            className="h-7 w-7"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              if (!professional) return;
-                              const newPortfolio = professional.portfolio?.filter(p => p.id !== item.id) || [];
-                              setProfessional({
-                                ...professional,
-                                portfolio: newPortfolio
-                              });
-                            }}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
                         </div>
                       </div>
                     ))}
@@ -347,26 +346,100 @@ export const ProfileForm = () => {
               )}
               
               <div className="mt-6">
-                <h3 className="font-medium text-lg mb-4">Add New Portfolio Item</h3>
-                <div className="space-y-4">
-                  {/* Media Upload Section */}
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="col-span-2">
-                      <FormLabel>Photos/Videos</FormLabel>
-                      <div 
-                        className="mt-1 border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors"
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="w-full py-8 border-dashed bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200">
+                      <Plus className="h-5 w-5 mr-2" />
+                      Add New Portfolio Item
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle>Add Portfolio Item</DialogTitle>
+                      <DialogDescription>
+                        Showcase your work with images and details about your projects
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="portfolio-title">Project Title</Label>
+                        <Input id="portfolio-title" placeholder="e.g. Commercial Building Electrical Installation" />
+                      </div>
+                      
+                      <div className="grid gap-2">
+                        <Label htmlFor="portfolio-description">Description</Label>
+                        <Textarea 
+                          id="portfolio-description" 
+                          placeholder="Describe the project, your role, challenges overcome, and results achieved..."
+                          className="min-h-20"
+                        />
+                      </div>
+                      
+                      <div className="grid gap-2">
+                        <Label htmlFor="portfolio-image">Project Photo/Video</Label>
+                        <div className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-slate-50 transition-colors">
+                          <Upload className="h-5 w-5 mx-auto mb-2 text-blue-500" />
+                          <p className="text-sm text-gray-500">Click to upload or drag and drop</p>
+                          <p className="text-xs text-gray-400 mt-1">JPG, PNG, MP4 (Max 10MB)</p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid gap-2">
+                        <Label htmlFor="portfolio-date">Project Date</Label>
+                        <Input id="portfolio-date" type="date" />
+                      </div>
+                      
+                      <div className="grid gap-2">
+                        <Label htmlFor="portfolio-tags">Skills Used (comma-separated)</Label>
+                        <Input id="portfolio-tags" placeholder="e.g. Electrical, Commercial, Wiring" />
+                        <p className="text-xs text-gray-500">
+                          Add tags to help potential clients understand what skills you used
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <DialogFooter className="sm:justify-end">
+                      <DialogClose asChild>
+                        <Button variant="secondary">Cancel</Button>
+                      </DialogClose>
+                      <Button 
+                        type="button"
                         onClick={() => {
-                          // In a real implementation, this would trigger a file upload dialog
-                          // For the demo, we'll add a dummy portfolio item
                           if (!professional) return;
                           
+                          // In a real app, this would submit the form values
+                          // For demo purposes, we'll add a mock portfolio item
+                          const titleInput = document.getElementById('portfolio-title') as HTMLInputElement;
+                          const descriptionInput = document.getElementById('portfolio-description') as HTMLTextAreaElement;
+                          const dateInput = document.getElementById('portfolio-date') as HTMLInputElement;
+                          const tagsInput = document.getElementById('portfolio-tags') as HTMLInputElement;
+                          
+                          const title = titleInput?.value || 'New Construction Project';
+                          const description = descriptionInput?.value || 'A detailed description of the project, highlighting your contributions and skills applied.';
+                          const date = dateInput?.value ? new Date(dateInput.value).toISOString() : new Date().toISOString();
+                          const tags = tagsInput?.value 
+                            ? tagsInput.value.split(',').map(tag => tag.trim())
+                            : ['Construction', 'Renovation'];
+                          
+                          // Sample portfolio images for demo purposes
+                          const sampleImages = [
+                            '/portfolio/construction-1.jpg',
+                            '/portfolio/construction-2.jpg',
+                            '/portfolio/electrical-work.jpg',
+                            '/portfolio/smarthome.jpg',
+                            '/portfolio/construction-default.jpg'
+                          ];
+                          
+                          const imageUrl = sampleImages[Math.floor(Math.random() * sampleImages.length)];
+                          
                           const newItem: IPortfolioItem = {
-                            id: `port${Date.now()}`,
-                            title: "New Construction Project",
-                            description: "A brief description of your project and your role in it.",
-                            imageUrl: "/portfolio/construction-default.jpg",
-                            tags: ["Residential", "Carpentry"],
-                            date: new Date().toISOString()
+                            id: `port-${Date.now()}`,
+                            title,
+                            description,
+                            imageUrl,
+                            tags,
+                            date
                           };
                           
                           const newPortfolio = [...(professional.portfolio || []), newItem];
@@ -374,44 +447,19 @@ export const ProfileForm = () => {
                             ...professional,
                             portfolio: newPortfolio
                           });
+                          
+                          // Reset form
+                          if (titleInput) titleInput.value = '';
+                          if (descriptionInput) descriptionInput.value = '';
+                          if (dateInput) dateInput.value = '';
+                          if (tagsInput) tagsInput.value = '';
                         }}
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && professional) {
-                            const newItem: IPortfolioItem = {
-                              id: `port${Date.now()}`,
-                              title: "New Construction Project",
-                              description: "A brief description of your project and your role in it.",
-                              imageUrl: "/portfolio/construction-default.jpg",
-                              tags: ["Residential", "Carpentry"],
-                              date: new Date().toISOString()
-                            };
-                            
-                            const newPortfolio = [...(professional.portfolio || []), newItem];
-                            setProfessional({
-                              ...professional,
-                              portfolio: newPortfolio
-                            });
-                          }
-                        }}
-                        aria-label="Upload portfolio photos or videos"
                       >
-                        <Upload className="h-8 w-8 text-blue-500 mb-2" />
-                        <div className="space-y-1 text-center">
-                          <p className="text-sm font-medium">Drag & drop or click to upload</p>
-                          <p className="text-xs text-muted-foreground">
-                            Support for images (JPG, PNG) and videos (MP4) up to 50MB
-                          </p>
-                        </div>
-                        <div className="mt-4">
-                          <Button size="sm" variant="secondary">
-                            Choose Files
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                        Add to Portfolio
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
@@ -425,29 +473,191 @@ export const ProfileForm = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {professional?.certifications.map(cert => (
-                  <div key={cert.id} className="flex items-start gap-4 p-3 rounded-lg border">
-                    <div className="flex-1">
-                      <h3 className="font-medium">{cert.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {cert.issuer} • Issued {new Date(cert.date).toLocaleDateString()}
-                      </p>
-                      {cert.validUntil && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Valid until {new Date(cert.validUntil).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                    {cert.verified && (
-                      <Badge variant="secondary">Verified</Badge>
-                    )}
+                {professional?.certifications && professional.certifications.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-3">
+                    {professional.certifications.map(cert => (
+                      <div key={cert.id} className="flex items-start gap-4 p-4 rounded-lg border hover:border-blue-200 hover:bg-blue-50/30 transition-all">
+                        <div className="bg-blue-100 text-blue-700 p-3 rounded-md">
+                          <Award className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium">{cert.name}</h3>
+                            {cert.verified && (
+                              <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-200">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Verified
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {cert.issuer} • Issued {new Date(cert.date).toLocaleDateString()}
+                          </p>
+                          {cert.validUntil && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              <span className={`${
+                                new Date(cert.validUntil) < new Date() 
+                                  ? "text-red-500 font-medium" 
+                                  : "text-green-600"
+                              }`}>
+                                {new Date(cert.validUntil) < new Date() 
+                                  ? "Expired" 
+                                  : "Valid until"} {new Date(cert.validUntil).toLocaleDateString()}
+                              </span>
+                            </p>
+                          )}
+                          {cert.documentUrl && (
+                            <div className="mt-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="text-xs"
+                                onClick={() => window.open(cert.documentUrl, '_blank')}
+                              >
+                                <FileText className="h-3 w-3 mr-1" />
+                                View Document
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-gray-400 hover:text-red-500"
+                          onClick={() => {
+                            if (!professional) return;
+                            
+                            const updatedCertifications = professional.certifications?.filter(
+                              c => c.id !== cert.id
+                            ) || [];
+                            
+                            setProfessional({
+                              ...professional,
+                              certifications: updatedCertifications
+                            });
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  <div className="text-center p-8 border-2 border-dashed rounded-lg">
+                    <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center bg-blue-50 text-blue-500 mb-4">
+                      <Award className="h-6 w-6" />
+                    </div>
+                    <h3 className="font-medium text-lg">No Certifications Added</h3>
+                    <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+                      Showcase your professional qualifications by adding certifications. Professionals with verified certifications get 2x more job opportunities.
+                    </p>
+                  </div>
+                )}
                 
-                <Button variant="outline" className="w-full py-8 border-dashed">
-                  <Upload className="h-5 w-5 mr-2" />
-                  Upload Certification
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full py-8 border-dashed flex items-center justify-center gap-2"
+                    >
+                      <Upload className="h-5 w-5" />
+                      Add Certification
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Add Certification</DialogTitle>
+                      <DialogDescription>
+                        Add details of your professional certifications, licenses, or qualifications.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="cert-name">Certification Name</Label>
+                        <Input id="cert-name" placeholder="e.g. Master Electrician License" />
+                      </div>
+                      
+                      <div className="grid gap-2">
+                        <Label htmlFor="cert-issuer">Issuing Organization</Label>
+                        <Input id="cert-issuer" placeholder="e.g. State Electrical Board" />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="cert-date">Issue Date</Label>
+                          <Input id="cert-date" type="date" />
+                        </div>
+                        
+                        <div className="grid gap-2">
+                          <Label htmlFor="cert-expiry">Expiry Date (Optional)</Label>
+                          <Input id="cert-expiry" type="date" />
+                        </div>
+                      </div>
+                      
+                      <div className="grid gap-2">
+                        <Label htmlFor="cert-document">Upload Document (Optional)</Label>
+                        <div className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-slate-50 transition-colors">
+                          <Upload className="h-5 w-5 mx-auto mb-2 text-blue-500" />
+                          <p className="text-sm text-gray-500">Click to upload or drag and drop</p>
+                          <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG (Max 5MB)</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <DialogFooter className="sm:justify-end">
+                      <DialogClose asChild>
+                        <Button variant="secondary">Cancel</Button>
+                      </DialogClose>
+                      <Button 
+                        type="button"
+                        onClick={() => {
+                          if (!professional) return;
+                          
+                          // In a real app, this would submit the form values
+                          // For demo purposes, we'll add a mock certification
+                          const nameInput = document.getElementById('cert-name') as HTMLInputElement;
+                          const issuerInput = document.getElementById('cert-issuer') as HTMLInputElement;
+                          const dateInput = document.getElementById('cert-date') as HTMLInputElement;
+                          const expiryInput = document.getElementById('cert-expiry') as HTMLInputElement;
+                          
+                          const name = nameInput?.value || 'OSHA Safety Certification';
+                          const issuer = issuerInput?.value || 'Occupational Safety and Health Administration';
+                          const date = dateInput?.value ? new Date(dateInput.value).toISOString() : new Date().toISOString();
+                          const validUntil = expiryInput?.value ? new Date(expiryInput.value).toISOString() : undefined;
+                          
+                          const newCertification: ICertification = {
+                            id: `cert-${Date.now()}`,
+                            name,
+                            issuer,
+                            date,
+                            validUntil,
+                            verified: false,
+                            documentUrl: '/certs/sample-certification.pdf'
+                          };
+                          
+                          const updatedCertifications = [
+                            ...(professional.certifications || []),
+                            newCertification
+                          ];
+                          
+                          setProfessional({
+                            ...professional,
+                            certifications: updatedCertifications
+                          });
+                          
+                          // Reset form
+                          if (nameInput) nameInput.value = '';
+                          if (issuerInput) issuerInput.value = '';
+                          if (dateInput) dateInput.value = '';
+                          if (expiryInput) expiryInput.value = '';
+                        }}
+                      >
+                        Add Certification
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
@@ -466,12 +676,16 @@ export const ProfileForm = () => {
                 render={() => (
                   <FormItem>
                     <FormLabel>Your Skills</FormLabel>
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="flex flex-wrap gap-2 mb-4 min-h-12 border p-2 rounded-md">
                       {form.getValues().skills.map(skill => (
-                        <Badge key={skill} variant="secondary" className="py-1 px-2 cursor-pointer">
+                        <Badge 
+                          key={skill} 
+                          variant="secondary" 
+                          className="py-1.5 px-3 cursor-pointer bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                        >
                           {skill}
                           <X
-                            className="h-3 w-3 ml-1"
+                            className="h-3.5 w-3.5 ml-1.5"
                             onClick={() => removeSkill(skill)}
                             tabIndex={0}
                             onKeyDown={(e) => e.key === 'Enter' && removeSkill(skill)}
@@ -480,32 +694,148 @@ export const ProfileForm = () => {
                         </Badge>
                       ))}
                       {form.getValues().skills.length === 0 && (
-                        <div className="text-sm text-muted-foreground py-1">
-                          No skills added yet. Select from the list below.
+                        <div className="text-sm text-muted-foreground py-1.5 px-2">
+                          No skills added yet. Select from suggestions or search below.
                         </div>
                       )}
                     </div>
                     
-                    <Separator className="my-4" />
+                    <div className="relative mb-6">
+                      <Input
+                        placeholder="Search for a skill or type to add custom skill..."
+                        value={skillInput}
+                        onChange={(e) => {
+                          setSkillInput(e.target.value);
+                          setShowSuggestions(e.target.value.length > 0);
+                        }}
+                        onFocus={() => setShowSuggestions(skillInput.length > 0)}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        ref={skillInputRef}
+                        className="pr-24"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="absolute right-1 top-1 h-8"
+                        disabled={!skillInput.trim()}
+                        onClick={() => {
+                          if (skillInput.trim()) {
+                            addSkill(skillInput.trim());
+                            setSkillInput("");
+                            setShowSuggestions(false);
+                          }
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add
+                      </Button>
+                      
+                      {/* Skill search suggestions */}
+                      {showSuggestions && (
+                        <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                          {skillsList
+                            .filter(skill => skill.toLowerCase().includes(skillInput.toLowerCase()))
+                            .slice(0, 6)
+                            .map(skill => (
+                              <div
+                                key={skill}
+                                className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
+                                onClick={() => {
+                                  addSkill(skill);
+                                  setSkillInput("");
+                                  setShowSuggestions(false);
+                                  skillInputRef.current?.focus();
+                                }}
+                              >
+                                {skill}
+                              </div>
+                            ))}
+                          {skillsList.filter(skill => skill.toLowerCase().includes(skillInput.toLowerCase())).length === 0 && (
+                            <div className="px-3 py-2 text-sm text-gray-500 italic">
+                              No matching skills found. Press "Add" to create a custom skill.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                     
-                    <div>
-                      <FormLabel>Popular Skills</FormLabel>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {skillsList.slice(0, 20).map(skill => (
-                          <Badge 
-                            key={skill} 
-                            variant="outline" 
-                            className={`
-                              cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors
-                              ${form.getValues().skills.includes(skill) ? 'bg-primary text-primary-foreground' : ''}
-                            `}
-                            onClick={() => form.getValues().skills.includes(skill) ? removeSkill(skill) : addSkill(skill)}
-                            tabIndex={0}
-                            onKeyDown={(e) => e.key === 'Enter' && (form.getValues().skills.includes(skill) ? removeSkill(skill) : addSkill(skill))}
+                    <div className="space-y-5">
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <FormLabel>Popular Construction Skills</FormLabel>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-xs h-7"
+                            onClick={() => setShowAllSkills(!showAllSkills)}
                           >
-                            {skill}
-                          </Badge>
-                        ))}
+                            {showAllSkills ? "Show Less" : "Show More"}
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {skillsList.slice(0, showAllSkills ? 30 : 15).map(skill => (
+                            <Badge 
+                              key={skill} 
+                              variant="outline" 
+                              className={`
+                                cursor-pointer transition-colors
+                                ${form.getValues().skills.includes(skill) 
+                                  ? 'bg-blue-100 border-blue-200 text-blue-700 hover:bg-blue-200' 
+                                  : 'hover:bg-slate-100'}
+                              `}
+                              onClick={() => form.getValues().skills.includes(skill) ? removeSkill(skill) : addSkill(skill)}
+                              tabIndex={0}
+                              onKeyDown={(e) => e.key === 'Enter' && (form.getValues().skills.includes(skill) ? removeSkill(skill) : addSkill(skill))}
+                            >
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <div className="flex items-start gap-3">
+                          <div className="bg-blue-100 text-blue-700 p-2 rounded-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                              <path d="M21.64 3.64a1.35 1.35 0 0 0-1.2-.38L2.27 7.62a1.35 1.35 0 0 0-.92 1.69a1.35 1.35 0 0 0 1.2.73L6 10.3l.28 4.78a1.86 1.86 0 0 0 .68 1.26a1.8 1.8 0 0 0 2.25.26L12 14.86l4.2 4.7a1.35 1.35 0 0 0 2.28-.97l2.8-13.03a1.35 1.35 0 0 0-.28-1.31" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-sm">AI-Powered Skill Suggestions</h4>
+                            <p className="text-xs text-blue-700/70 mt-1">Based on your profile, you might want to add these skills:</p>
+                            
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {professional?.certifications?.map(cert => cert.name.split(' '))
+                                .flat()
+                                .filter(word => word.length > 3 && !skillsList.some(skill => skill.includes(word)))
+                                .slice(0, 3)
+                                .map((skill, idx) => (
+                                  <Badge 
+                                    key={idx} 
+                                    variant="outline" 
+                                    className="cursor-pointer border-blue-200 bg-white text-blue-700 hover:bg-blue-50"
+                                    onClick={() => form.getValues().skills.includes(skill) ? removeSkill(skill) : addSkill(skill)}
+                                  >
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    {skill}
+                                  </Badge>
+                                ))}
+                              
+                              {/* Add some reasonable construction-related skills as suggestions */}
+                              {['Project Management', 'Safety Compliance', 'Team Leadership', 'Client Communication'].map((skill, idx) => (
+                                <Badge 
+                                  key={`sugg-${idx}`} 
+                                  variant="outline" 
+                                  className="cursor-pointer border-blue-200 bg-white text-blue-700 hover:bg-blue-50"
+                                  onClick={() => form.getValues().skills.includes(skill) ? removeSkill(skill) : addSkill(skill)}
+                                >
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  {skill}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     

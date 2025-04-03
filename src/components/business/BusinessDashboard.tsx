@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +25,14 @@ import {
   BarChart,
   Activity,
   Users,
-  Palette
+  Palette,
+  Eye,
+  PlusCircle,
+  FileText,
+  MailOpen,
+  Phone,
+  CircleUser,
+  UserCheck
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { dummyJobs, dummyProfessionals } from "@/lib/dummy-data";
@@ -37,6 +46,7 @@ import { ColorTheme, businessThemes } from "@/lib/theme-utils";
 export const BusinessDashboard = () => {
   const { business } = useAppStore();
   const [activeTheme, setActiveTheme] = useState<ColorTheme>(businessThemes[0]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   if (!business) {
     return (
@@ -118,435 +128,453 @@ export const BusinessDashboard = () => {
     }
   ];
 
+  // Filter professionals based on search
+  const filteredProfessionals = dummyProfessionals.filter(pro => {
+    if (!searchQuery) return false; // Only show results when user searches
+    
+    const query = searchQuery.toLowerCase();
+    const nameMatch = pro.name.toLowerCase().includes(query);
+    const skillsMatch = pro.skills.some(skill => skill.toLowerCase().includes(query));
+    const locationMatch = pro.location?.toLowerCase().includes(query) || false;
+    
+    return nameMatch || skillsMatch || locationMatch;
+  });
+
+  // Calculate some metrics for the dashboard
+  const totalApplications = 12; // Mockup number for demo
+  const recentlyViewedProfiles = 8; // Mockup number for demo
+  
+  // Recent activity data (mockup for demo)
+  const recentActivity = [
+    { 
+      type: 'view', 
+      professional: dummyProfessionals[0], 
+      date: '2 hours ago',
+      description: 'You viewed this profile'
+    },
+    { 
+      type: 'job_post', 
+      job: businessJobs[0], 
+      date: '1 day ago',
+      description: 'You posted a new job'
+    },
+    { 
+      type: 'application', 
+      professional: dummyProfessionals[1], 
+      job: businessJobs[0],
+      date: '2 days ago',
+      description: 'New application received'
+    },
+    { 
+      type: 'view', 
+      professional: dummyProfessionals[2], 
+      date: '3 days ago',
+      description: 'You viewed this profile'
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Welcome section with brand color customizer */}
-      <div className={cn("rounded-xl border p-6 shadow-sm", activeTheme.classes.headerGradient)}>
-        <div className="flex flex-col md:flex-row gap-6 md:items-center md:justify-between">
-          <div className="flex items-center gap-4">
-            <Avatar className={cn("h-16 w-16 border-2 shadow-md", activeTheme.classes.primaryBorder)}>
-              <AvatarImage src={business.logoUrl} alt={business.name} />
-              <AvatarFallback className={cn("text-lg", activeTheme.classes.primaryBg, activeTheme.classes.primaryText)}>
-                {business.name?.charAt(0) || 'B'}
-              </AvatarFallback>
-            </Avatar>
+    <div className="space-y-8">
+      {/* Welcome Banner */}
+      <Card className="bg-gradient-to-br from-blue-600 to-purple-600 text-white border-none shadow-md">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className={cn("text-2xl md:text-3xl font-bold tracking-tight", activeTheme.classes.textGradient)}>
-                Welcome, {business.name}
-              </h1>
-              <p className="text-gray-500 flex items-center gap-1 mt-1">
-                <Building2 className="h-4 w-4" />
-                <span>{business.industry || "Business"}</span>
-                {business.location && (
-                  <>
-                    <span className="mx-1">•</span>
-                    <MapPin className="h-3 w-3" />
-                    <span>{business.location}</span>
-                  </>
-                )}
+              <h1 className="text-2xl font-bold">Welcome back, {business?.name}</h1>
+              <p className="text-blue-100 mt-1">
+                Here's what's happening with your business today
               </p>
             </div>
-          </div>
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Palette className="h-4 w-4" />
-                <span>Brand Colors</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-4">
-              <h3 className="font-medium mb-2">Choose Dashboard Theme</h3>
-              <div className="grid grid-cols-1 gap-2">
-                {businessThemes.map((theme) => (
-                  <Button 
-                    key={theme.name}
-                    variant="outline" 
-                    size="sm"
-                    className={cn(
-                      "justify-start text-sm font-normal h-10",
-                      activeTheme.name === theme.name && "ring-2 ring-blue-500"
-                    )}
-                    onClick={() => setActiveTheme(theme)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-1">
-                        <div className={`w-4 h-4 rounded-full bg-${theme.primaryColor}-500`} />
-                        <div className={`w-4 h-4 rounded-full bg-${theme.secondaryColor}-500`} />
-                        <div className={`w-4 h-4 rounded-full bg-${theme.accentColor}-500`} />
-                      </div>
-                      <span>{theme.name} Theme</span>
-                    </div>
-                  </Button>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Choose colors that match your business brand identity.
-              </p>
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-
-      {/* Quick actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {quickActions.map((action, index) => (
-          <Card key={index} className={cn("border shadow-sm hover:shadow-md transition-shadow", activeTheme.classes.primaryBorder)}>
-            <Link href={action.href} className="block h-full">
-              <CardContent className="p-0">
-                <div className="flex items-start p-4 h-full">
-                  <div className={cn("rounded-full p-3 mr-4", action.colorClass)}>
-                    {action.icon}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-800">{action.title}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{action.description}</p>
-                  </div>
-                  <ArrowRight className={cn("h-5 w-5 self-center", activeTheme.classes.primaryText)} />
-                </div>
-              </CardContent>
-            </Link>
-          </Card>
-        ))}
-      </div>
-
-      {/* Dashboard metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className={cn("border shadow-sm", activeTheme.classes.primaryBgLight, activeTheme.classes.primaryBorder)}>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="bg-green-100 p-2 rounded-lg border border-green-200">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <Badge variant="outline" className="text-green-600 bg-green-50 border-green-200">Active</Badge>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mt-2">{activeJobs.length}</h2>
-            <p className="text-gray-500 text-sm">Active Job Listings</p>
-            <div className="mt-4">
-              <Link 
-                href="/dashboard/post-job" 
-                className={cn("text-sm hover:underline flex items-center gap-1", activeTheme.classes.primaryText)}
-              >
-                View Jobs <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className={cn("border shadow-sm", activeTheme.classes.accentBg, activeTheme.classes.accentBorder)}>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="bg-yellow-100 p-2 rounded-lg border border-yellow-200">
-                <FileEdit className="h-5 w-5 text-yellow-600" />
-              </div>
-              <Badge variant="outline" className="text-yellow-600 bg-yellow-50 border-yellow-200">Draft</Badge>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mt-2">{draftJobs.length}</h2>
-            <p className="text-gray-500 text-sm">Job Drafts</p>
-            <div className="mt-4">
-              <Link 
-                href="/dashboard/post-job" 
-                className={cn("text-sm hover:underline flex items-center gap-1", activeTheme.classes.primaryText)}
-              >
-                View Drafts <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className={cn("border shadow-sm", activeTheme.classes.secondaryBgLight, activeTheme.classes.secondaryBorder)}>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className={cn("p-2 rounded-lg", activeTheme.classes.secondaryBg, activeTheme.classes.secondaryBorder)}>
-                <Users className={cn("h-5 w-5", activeTheme.classes.secondaryText)} />
-              </div>
-              <Badge variant="outline" className={cn("", activeTheme.classes.secondaryText, activeTheme.classes.secondaryBg, activeTheme.classes.secondaryBorder)}>
-                Matches
-              </Badge>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mt-2">{matchingProfessionals.length}</h2>
-            <p className="text-gray-500 text-sm">Matching Professionals</p>
-            <div className="mt-4">
-              <Link 
-                href="/dashboard/find-professionals" 
-                className={cn("text-sm hover:underline flex items-center gap-1", activeTheme.classes.primaryText)}
-              >
-                Find Professionals <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Profile completion card - only show if not 100% complete */}
-      {completionPercentage < 100 && (
-        <Card className={cn("border shadow-sm", activeTheme.classes.primaryBorder)}>
-          <CardHeader className={cn("pb-3", activeTheme.classes.primaryBg)}>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Activity className={cn("h-5 w-5", activeTheme.classes.primaryText)} />
-              Complete Your Business Profile
-            </CardTitle>
-            <CardDescription>
-              Your profile is <span className={cn("font-medium", activeTheme.classes.primaryText)}>{completionPercentage.toFixed(0)}%</span> complete. 
-              Complete all tasks to improve visibility to professionals.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <Progress 
-              value={completionPercentage} 
-              className="h-2.5 bg-blue-100"
-              aria-label="Profile completion progress"
-            />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              {tasks.map(task => {
-                const Icon = task.icon;
-                return (
-                  <div 
-                    key={task.id}
-                    className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg transition-colors border",
-                      task.completed 
-                        ? "bg-green-50 border-green-200" 
-                        : `bg-white ${activeTheme.classes.primaryBorder} ${activeTheme.classes.primaryHover}`
-                    )}
-                  >
-                    <div className="flex-shrink-0">
-                      <div className={cn(
-                        "h-9 w-9 rounded-full flex items-center justify-center",
-                        task.completed 
-                          ? "bg-green-100" 
-                          : activeTheme.classes.primaryBg
-                      )}>
-                        <Icon className={cn(
-                          "h-5 w-5",
-                          task.completed 
-                            ? "text-green-600" 
-                            : activeTheme.classes.primaryText
-                        )} />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <Link 
-                        href={task.href}
-                        className={cn(
-                          "text-sm font-medium hover:underline flex items-center gap-1",
-                          task.completed ? "text-green-700" : activeTheme.classes.primaryText
-                        )}
-                        tabIndex={0}
-                      >
-                        {task.label}
-                        {!task.completed && <ArrowRight className="h-3 w-3 ml-1" />}
-                      </Link>
-                      {task.completed && (
-                        <p className="text-xs text-green-600 mt-0.5">Completed</p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Job listings */}
-      <Card className={cn("border shadow-sm", activeTheme.classes.cardBg)}>
-        <CardHeader className="px-6 border-b">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle>Recent Job Listings</CardTitle>
-              <CardDescription>Manage your active job postings</CardDescription>
-            </div>
-            <Button asChild>
-              <Link href="/dashboard/post-job" tabIndex={0} aria-label="Post a new job">
-                <Plus className="h-4 w-4 mr-2" />
+            <Button className="bg-white text-blue-700 hover:bg-blue-50" asChild>
+              <Link href="/dashboard/post-job">
+                <PlusCircle className="mr-2 h-4 w-4" />
                 Post New Job
               </Link>
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="px-6 py-4">
-          {activeJobs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 px-4 border border-dashed rounded-lg bg-muted/30 text-center">
-              <BriefcaseBusiness className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-1">No active job listings</h3>
-              <p className="text-muted-foreground mb-4 max-w-md">
-                Post your first job to start receiving applications from professionals
-              </p>
-              <Button asChild>
-                <Link href="/dashboard/post-job" tabIndex={0} aria-label="Post your first job">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Post a Job
-                </Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {activeJobs.slice(0, 3).map((job) => (
-                <div key={job.id} className="flex flex-col sm:flex-row items-start gap-4 py-4 border-b last:border-0 last:pb-0 first:pt-0">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-base">{job.title}</h3>
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
-                      {job.location && (
-                        <Badge variant="outline" className="text-xs">
-                          {job.location}
-                        </Badge>
-                      )}
-                      <span className="text-xs text-muted-foreground">
-                        Posted on {new Date(job.datePosted).toLocaleDateString()}
-                      </span>
-                    </div>
-                    
-                    <p className="text-sm mt-2 line-clamp-2 text-muted-foreground">{job.description}</p>
-                    
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {job.skills.slice(0, 3).map(skill => (
-                        <Badge key={skill} variant="secondary" className="text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
-                      {job.skills.length > 3 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{job.skills.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex-shrink-0 flex flex-row sm:flex-col gap-2 self-start">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/dashboard/post-job`} tabIndex={0} aria-label="Edit job">
-                        <FileEdit className="h-4 w-4 mr-2" />
-                        Edit
-                      </Link>
-                    </Button>
-                    
-                    <Button variant="outline" size="sm" className="text-yellow-600">
-                      <Archive className="h-4 w-4 mr-2" />
-                      Close
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              
-              <div className="pt-2 text-center">
-                <Button variant="outline" asChild>
-                  <Link href="/dashboard/post-job">
-                    View All Job Listings
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {/* Matching professionals */}
-      <Card className={cn("border shadow-sm", activeTheme.classes.secondaryBorder)}>
-        <CardHeader className={cn("pb-4", activeTheme.classes.secondaryBgLight)}>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <User className={cn("h-5 w-5", activeTheme.classes.secondaryText)} />
-                Matching Professionals
-              </CardTitle>
-              <CardDescription>
-                Professionals that match your job requirements
-              </CardDescription>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="border border-blue-100 hover:border-blue-300 hover:shadow-md transition-all bg-white/70">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Active Jobs</p>
+                <h3 className="text-3xl font-bold mt-1">{activeJobs.length}</h3>
+              </div>
+              <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
+                <Briefcase className="h-5 w-5" />
+              </div>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className={cn(
-                "text-sm", 
-                activeTheme.classes.secondaryText, 
-                activeTheme.classes.secondaryHover, 
-                activeTheme.classes.secondaryBorder
-              )} 
-              asChild
-            >
-              <Link href="/dashboard/find-professionals" tabIndex={0} aria-label="Find professionals">
-                Find More
-                <ArrowRight className="h-3 w-3 ml-1" />
+            <div className="mt-4">
+              <div className="text-xs flex justify-between font-medium text-muted-foreground mb-1">
+                <span>Engagement rate</span>
+                <span className="text-blue-700">87%</span>
+              </div>
+              <Progress value={87} className="h-1.5" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-blue-100 hover:border-blue-300 hover:shadow-md transition-all bg-white/70">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Applications</p>
+                <h3 className="text-3xl font-bold mt-1">{totalApplications}</h3>
+              </div>
+              <div className="p-2 bg-purple-100 text-purple-700 rounded-lg">
+                <FileText className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-xs flex justify-between font-medium text-muted-foreground mb-1">
+                <span>New this week</span>
+                <span className="text-purple-700">+4</span>
+              </div>
+              <Progress value={40} className="h-1.5 bg-purple-100" indicatorClassName="bg-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-blue-100 hover:border-blue-300 hover:shadow-md transition-all bg-white/70">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Viewed Profiles</p>
+                <h3 className="text-3xl font-bold mt-1">{recentlyViewedProfiles}</h3>
+              </div>
+              <div className="p-2 bg-teal-100 text-teal-700 rounded-lg">
+                <Users className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-xs flex justify-between font-medium text-muted-foreground mb-1">
+                <span>Conversion rate</span>
+                <span className="text-teal-700">23%</span>
+              </div>
+              <Progress value={23} className="h-1.5 bg-teal-100" indicatorClassName="bg-teal-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Quick Search for Professionals */}
+        <Card className="lg:col-span-2 border border-blue-100">
+          <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-blue-100 pb-4">
+            <CardTitle className="text-xl flex items-center">
+              <Search className="h-5 w-5 mr-2 text-blue-600" />
+              Quick Professional Search
+            </CardTitle>
+            <CardDescription>
+              Find skilled professionals based on skills or location
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 space-y-6">
+            <div className="flex gap-2">
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by skill, name, or location..."
+                  className="pl-10 py-2 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Button asChild className="bg-blue-600 hover:bg-blue-700 transition-colors">
+                <Link href="/dashboard/find-professionals">Advanced Search</Link>
+              </Button>
+            </div>
+
+            {searchQuery ? (
+              filteredProfessionals.length > 0 ? (
+                <div className="space-y-3">
+                  {filteredProfessionals.slice(0, 3).map((pro) => (
+                    <div key={pro.id} className="flex items-start gap-3 p-3 border border-gray-100 rounded-lg hover:border-blue-200 hover:bg-blue-50/30 transition-all">
+                      <Avatar className="h-10 w-10 border border-blue-100">
+                        <AvatarFallback className="bg-blue-50 text-blue-700">
+                          {pro.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-medium text-sm truncate">{pro.name}</h3>
+                          {pro.verified && (
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 h-5 px-1.5">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              <span className="text-xs">Verified</span>
+                            </Badge>
+                          )}
+                          {pro.availability && (
+                            <Badge variant="secondary" className="bg-green-50 text-green-700 h-5 px-1.5">
+                              <span className="text-xs">Available</span>
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 truncate mt-0.5">
+                          {pro.location && (
+                            <span className="inline-flex items-center">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {pro.location}
+                            </span>
+                          )}
+                        </p>
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {pro.skills.slice(0, 3).map((skill) => (
+                            <Badge
+                              key={skill}
+                              variant="outline"
+                              className="h-5 text-xs px-1.5 py-0 bg-white border-gray-200"
+                            >
+                              {skill}
+                            </Badge>
+                          ))}
+                          {pro.skills.length > 3 && (
+                            <Badge
+                              variant="outline"
+                              className="h-5 text-xs px-1.5 py-0 bg-white border-gray-200"
+                            >
+                              +{pro.skills.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Link href={`/professionals/${pro.id}`} passHref className="shrink-0">
+                        <Button variant="ghost" size="sm" className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                      </Link>
+                    </div>
+                  ))}
+                  
+                  {filteredProfessionals.length > 3 && (
+                    <div className="text-center mt-4">
+                      <Button variant="outline" asChild className="text-blue-600 border-blue-200 hover:border-blue-300 hover:bg-blue-50 transition-all">
+                        <Link href="/dashboard/find-professionals">
+                          View All Results ({filteredProfessionals.length})
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
+                  <UserCheck className="h-10 w-10 mx-auto text-gray-300 mb-2" />
+                  <h3 className="text-lg font-medium text-gray-600">No professionals found</h3>
+                  <p className="text-sm text-gray-500 mt-1">Try different search terms or check out our advanced search</p>
+                  <Button asChild className="mt-4 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800" variant="outline">
+                    <Link href="/dashboard/find-professionals">
+                      Advanced Search
+                    </Link>
+                  </Button>
+                </div>
+              )
+            ) : (
+              <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-lg">
+                <Search className="h-10 w-10 mx-auto text-gray-300 mb-2" />
+                <h3 className="text-lg font-medium text-gray-600">Search for professionals</h3>
+                <p className="text-sm text-gray-500 mt-1">Enter skills, name, or location to find the right professionals</p>
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="bg-gradient-to-r from-slate-50 to-blue-50 border-t border-blue-100 p-4 flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              <Users className="h-4 w-4 inline mr-1" />
+              <span>{dummyProfessionals.length} professionals available</span>
+            </div>
+            <Button variant="link" asChild className="text-blue-600 hover:text-blue-800">
+              <Link href="/dashboard/find-professionals">
+                Advanced Search Options
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
+
+        {/* Recent Activity & Quick Actions */}
+        <Card className="border border-blue-100">
+          <Tabs defaultValue="activity">
+            <CardHeader className="border-b border-blue-100 pb-0">
+              <TabsList className="grid grid-cols-2 bg-blue-50 p-0.5">
+                <TabsTrigger value="activity" className="rounded data-[state=active]:bg-white data-[state=active]:text-blue-700">
+                  <CalendarClock className="h-4 w-4 mr-1.5" />
+                  Activity
+                </TabsTrigger>
+                <TabsTrigger value="actions" className="rounded data-[state=active]:bg-white data-[state=active]:text-blue-700">
+                  <CheckCircle className="h-4 w-4 mr-1.5" />
+                  Actions
+                </TabsTrigger>
+              </TabsList>
+            </CardHeader>
+            <CardContent className="p-4">
+              <TabsContent value="activity" className="space-y-4 mt-0">
+                {recentActivity.map((activity, index) => (
+                  <div key={index} className="flex gap-3 items-start p-2 rounded-lg hover:bg-blue-50 transition-colors">
+                    <div className={`shrink-0 p-2 rounded-lg ${
+                      activity.type === 'view' 
+                        ? 'bg-blue-100 text-blue-700' 
+                        : activity.type === 'job_post' 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-purple-100 text-purple-700'
+                    }`}>
+                      {activity.type === 'view' && <Eye className="h-4 w-4" />}
+                      {activity.type === 'job_post' && <Briefcase className="h-4 w-4" />}
+                      {activity.type === 'application' && <FileText className="h-4 w-4" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium">
+                          {activity.type === 'view' && activity.professional?.name}
+                          {activity.type === 'job_post' && activity.job?.title}
+                          {activity.type === 'application' && activity.professional?.name}
+                        </p>
+                        <span className="text-xs text-gray-500">{activity.date}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">{activity.description}</p>
+                      
+                      {activity.type === 'application' && (
+                        <div className="flex gap-2 mt-2">
+                          <Button variant="outline" size="sm" className="h-7 text-xs">
+                            <MailOpen className="h-3 w-3 mr-1" />
+                            Review
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-7 text-xs">
+                            <Phone className="h-3 w-3 mr-1" />
+                            Contact
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </TabsContent>
+              
+              <TabsContent value="actions" className="space-y-3 mt-0">
+                <div className="space-y-3">
+                  <Link href="/dashboard/post-job" className="flex items-center gap-3 p-3 rounded-lg border border-blue-100 hover:border-blue-300 hover:bg-blue-50 transition-all">
+                    <div className="bg-blue-100 text-blue-700 p-2 rounded-full">
+                      <PlusCircle className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium">Post a New Job</h3>
+                      <p className="text-xs text-gray-500">Create job listings to attract professionals</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-blue-500" />
+                  </Link>
+                  
+                  <Link href="/dashboard/find-professionals" className="flex items-center gap-3 p-3 rounded-lg border border-purple-100 hover:border-purple-300 hover:bg-purple-50 transition-all">
+                    <div className="bg-purple-100 text-purple-700 p-2 rounded-full">
+                      <Search className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium">Find Professionals</h3>
+                      <p className="text-xs text-gray-500">Search and discover skilled workers</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-purple-500" />
+                  </Link>
+                  
+                  <Link href="/dashboard/profile" className="flex items-center gap-3 p-3 rounded-lg border border-teal-100 hover:border-teal-300 hover:bg-teal-50 transition-all">
+                    <div className="bg-teal-100 text-teal-700 p-2 rounded-full">
+                      <Building2 className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium">Update Business Profile</h3>
+                      <p className="text-xs text-gray-500">Improve your company profile to attract talent</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-teal-500" />
+                  </Link>
+                  
+                  <Link href="/dashboard/jobs" className="flex items-center gap-3 p-3 rounded-lg border border-amber-100 hover:border-amber-300 hover:bg-amber-50 transition-all">
+                    <div className="bg-amber-100 text-amber-700 p-2 rounded-full">
+                      <BarChart className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium">Manage Job Listings</h3>
+                      <p className="text-xs text-gray-500">View and edit your current job postings</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-amber-500" />
+                  </Link>
+                </div>
+              </TabsContent>
+            </CardContent>
+          </Tabs>
+        </Card>
+      </div>
+      
+      {/* Active Jobs Section */}
+      <Card className="border border-blue-100">
+        <CardHeader className="pb-4 border-b border-blue-100 bg-gradient-to-r from-slate-50 to-blue-50">
+          <div className="flex justify-between items-center">
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-blue-600" />
+              Your Active Job Listings
+            </CardTitle>
+            <Button variant="outline" className="h-8 border-blue-200 text-blue-700 hover:bg-blue-50" asChild>
+              <Link href="/dashboard/jobs">
+                View All Jobs
               </Link>
             </Button>
           </div>
         </CardHeader>
-        
-        <CardContent className="p-0">
-          {matchingProfessionals.length > 0 ? (
-            <div className="divide-y border-t">
-              {matchingProfessionals.map(pro => (
-                <div key={pro.id} className={cn("flex items-start gap-4 p-4 transition-colors", activeTheme.classes.secondaryHover)}>
-                  <Avatar className={cn("h-12 w-12 border", activeTheme.classes.secondaryBorder)}>
-                    <AvatarImage src={pro.avatarUrl} alt={pro.name} />
-                    <AvatarFallback className={cn(activeTheme.classes.secondaryBg, activeTheme.classes.secondaryText)}>
-                      {pro.name.split(" ").map(n => n[0]).join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-800 truncate">{pro.name}</h3>
-                    <p className="text-sm text-gray-600 mt-0.5 truncate">{pro.title}</p>
-                    
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {pro.skills.slice(0, 3).map(skill => (
-                        <Badge 
-                          key={skill} 
-                          variant="outline" 
-                          className={cn(
-                            "text-xs", 
-                            activeTheme.classes.secondaryBorder, 
-                            activeTheme.classes.secondaryText, 
-                            activeTheme.classes.secondaryBg
-                          )}
-                        >
-                          {skill}
-                        </Badge>
-                      ))}
-                      {pro.skills.length > 3 && (
-                        <Badge variant="outline" className="text-xs border-gray-200 bg-gray-50 text-gray-700">
-                          +{pro.skills.length - 3}
-                        </Badge>
-                      )}
+        <CardContent className="p-4">
+          {activeJobs.length > 0 ? (
+            <div className="divide-y divide-gray-100">
+              {activeJobs.slice(0, 3).map((job) => (
+                <div key={job.id} className="py-4 first:pt-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-medium">{job.title}</h3>
+                      <div className="flex items-center text-sm text-gray-500 mt-1">
+                        <MapPin className="h-3.5 w-3.5 mr-1" />
+                        <span>{job.location || 'Remote'}</span>
+                        <span className="mx-2">•</span>
+                        <span className="inline-flex items-center">
+                          Posted {new Date(job.datePosted).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {job.skills.slice(0, 3).map((skill) => (
+                          <Badge
+                            key={skill}
+                            variant="outline"
+                            className="text-xs bg-white"
+                          >
+                            {skill}
+                          </Badge>
+                        ))}
+                        {job.skills.length > 3 && (
+                          <Badge variant="outline" className="text-xs bg-white">
+                            +{job.skills.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="h-8" asChild>
+                        <Link href={`/dashboard/jobs/${job.id}`}>
+                          Manage
+                        </Link>
+                      </Button>
                     </div>
                   </div>
-                  <Button 
-                    size="sm" 
-                    className={cn(
-                      activeTheme.classes.secondaryBg, 
-                      activeTheme.classes.secondaryText, 
-                      activeTheme.classes.secondaryHover, 
-                      activeTheme.classes.secondaryBorder
-                    )} 
-                    asChild
-                  >
-                    <Link href={`/dashboard/find-professionals/${pro.id}`}>
-                      View Profile
-                    </Link>
-                  </Button>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="p-8 text-center border-t">
-              <div className={cn("mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4", activeTheme.classes.secondaryBg)}>
-                <User className={cn("h-7 w-7", activeTheme.classes.secondaryText)} />
-              </div>
-              <p className="text-gray-700 text-lg font-medium mb-2">
-                No matching professionals
-              </p>
-              <p className="text-sm text-gray-500 max-w-md mx-auto mb-6">
-                Post a job with relevant skills to attract professionals.
-              </p>
-              <Button 
-                className={cn(
-                  activeTheme.classes.secondaryButton, 
-                  activeTheme.classes.secondaryButtonHover, 
-                  "shadow-sm"
-                )} 
-                asChild
-              >
-                <Link href="/dashboard/post-job" tabIndex={0}>
+            <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+              <Briefcase className="h-10 w-10 mx-auto text-gray-300 mb-2" />
+              <h3 className="text-lg font-medium text-gray-600">No active job listings</h3>
+              <p className="text-sm text-gray-500 mt-1">Start attracting professionals by posting a job</p>
+              <Button className="mt-4 bg-blue-600 hover:bg-blue-700" asChild>
+                <Link href="/dashboard/post-job">
+                  <PlusCircle className="h-4 w-4 mr-1.5" />
                   Post a Job
                 </Link>
               </Button>
