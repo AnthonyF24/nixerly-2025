@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import JobPostForm from "@/components/business/JobPostForm";
+import { JobPostWizard } from "@/components/business/JobPostWizard";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { dummyBusinesses } from "@/lib/dummy-data";
@@ -116,7 +117,7 @@ const PostJobPage = () => {
           </div>
       
           <TabsContent value="post">
-            <JobPostForm onSuccess={handleSuccess} />
+            <JobPostWizard onSuccess={handleSuccess} />
           </TabsContent>
           
           <TabsContent value="manage">
@@ -281,7 +282,7 @@ const PostJobPage = () => {
             </Button>
           </DialogHeader>
           {jobToEdit && (
-            <JobPostForm job={jobToEdit} onSuccess={handleEditSuccess} />
+            <JobPostWizard job={jobToEdit} onSuccess={handleEditSuccess} />
           )}
         </DialogContent>
       </Dialog>

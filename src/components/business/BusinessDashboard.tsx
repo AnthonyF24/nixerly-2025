@@ -32,7 +32,9 @@ import {
   MailOpen,
   Phone,
   CircleUser,
-  UserCheck
+  UserCheck,
+  Briefcase,
+  CalendarClock
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { dummyJobs, dummyProfessionals } from "@/lib/dummy-data";

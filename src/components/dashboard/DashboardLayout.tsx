@@ -19,8 +19,25 @@ import {
   ChevronRight,
   AlignLeft,
   Phone,
-  ExternalLink
+  ExternalLink,
+  X,
+  ChevronDown,
+  MessageSquare,
+  Building2,
+  FileText,
+  LayoutDashboard,
+  Search
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -28,6 +45,8 @@ interface DashboardLayoutProps {
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { userType, professional, business, logout, isAuthenticated } = useAppStore();
   const pathname = usePathname();
   
@@ -44,23 +63,25 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const isProfessionalVerified = isAuthenticated && userType === 'professional' && professional?.verified;
   
   const professionalNavItems = [
-    { href: "/dashboard", label: "Dashboard", icon: <Home className="w-5 h-5" /> },
+    { href: "/dashboard", label: pathname === "/dashboard/messages" ? "Return to Dashboard" : "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { href: "/dashboard/profile", label: "Profile & Portfolio", icon: <User className="w-5 h-5" /> },
     { href: "/dashboard/jobs", label: "Job Board", icon: <Briefcase className="w-5 h-5" /> },
+    { href: "/dashboard/messages", label: "Messages", icon: <MessageSquare className="w-5 h-5" /> },
     { href: "/dashboard/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
   
   const businessNavItems = [
-    { href: "/dashboard", label: "Dashboard", icon: <Home className="w-5 h-5" /> },
-    { href: "/dashboard/profile", label: "Business Profile", icon: <User className="w-5 h-5" /> },
+    { href: "/dashboard", label: pathname === "/dashboard/messages" ? "Return to Dashboard" : "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
+    { href: "/dashboard/profile", label: "Business Profile", icon: <Building2 className="w-5 h-5" /> },
     { href: "/dashboard/post-job", label: "Post a Job", icon: <FilePlus className="w-5 h-5" /> },
-    { href: "/dashboard/find-professionals", label: "Find Professionals", icon: <User className="w-5 h-5" /> },
+    { href: "/dashboard/find-professionals", label: "Find Professionals", icon: <Search className="w-5 h-5" /> },
+    { href: "/dashboard/messages", label: "Messages", icon: <MessageSquare className="w-5 h-5" /> },
     { href: "/dashboard/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
   
   // Public navigation links (for non-authenticated users)
   const publicNavItems = [
-    { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
+    // Home link removed
   ];
   
   // Add conditional navigation items for non-authenticated users
@@ -111,12 +132,40 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     );
   };
 
+  // Sample notifications for demo
+  const notifications = [
+    {
+      id: 1,
+      title: "New job application",
+      message: "John Smith applied to Senior Electrician position",
+      time: "2 hours ago",
+      unread: true,
+      type: "application"
+    },
+    {
+      id: 2,
+      title: "Profile viewed",
+      message: "BuildRight Construction viewed your profile",
+      time: "Yesterday",
+      unread: true,
+      type: "profile"
+    },
+    {
+      id: 3,
+      title: "New message",
+      message: "You received a message from Modern Renovations Ltd",
+      time: "2 days ago",
+      unread: false,
+      type: "message"
+    }
+  ];
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Sidebar for desktop */}
       <aside
         className={cn(
-          "hidden md:flex flex-col bg-muted/30 border-r transition-all duration-300 overflow-hidden",
+          "hidden lg:flex flex-col bg-muted/30 border-r transition-all duration-300 overflow-hidden",
           sidebarOpen ? "w-64" : "w-16"
         )}
       >
@@ -220,48 +269,65 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </aside>
       
       {/* Mobile sidebar */}
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Open navigation menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent side="left" className="w-80 p-0 border-r-0 sm:max-w-full">
           <div className="flex flex-col h-full">
-            <div className="flex items-center h-16 px-4 border-b">
+            <div className="flex items-center justify-between h-16 px-4 border-b">
               <Link href="/" className="text-xl font-bold text-blue-600 tracking-tight">
                 Nixerly
               </Link>
+              <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
+                <X className="h-5 w-5" />
+              </Button>
             </div>
+            
+            {isAuthenticated && (
+              <div className="flex items-center gap-3 p-4 bg-blue-50/50 border-b">
+                <Avatar className="h-11 w-11 border-2 border-blue-200">
+                  <AvatarImage 
+                    src={userType === "professional" ? "/avatars/professional.jpg" : "/avatars/business.jpg"} 
+                    alt={userName || ""} 
+                  />
+                  <AvatarFallback className="bg-blue-100 text-blue-700">{userInitials}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-sm truncate">{userName}</h3>
+                  <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+                </div>
+              </div>
+            )}
             
             <nav className="flex-1 py-4 overflow-y-auto">
               {isAuthenticated ? (
-                <ul className="space-y-1 px-2">
+                <ul className="space-y-2 px-2">
                   {navItems.map((item) => (
                     <li key={item.href}>
                       <Link
                         href={item.href}
                         className={getNavLinkClass(item.href)}
+                        onClick={() => setMobileMenuOpen(false)}
                         tabIndex={0}
                       >
                         {item.icon}
-                        <span>{item.label}</span>
+                        <span className="flex-1">{item.label}</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       </Link>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <ul className="space-y-1 px-2">
+                <ul className="space-y-2 px-2">
                   {publicNavItems.map((item) => (
                     <li key={item.href}>
                       <Link
                         href={item.href}
                         className={getNavLinkClass(item.href)}
+                        onClick={() => setMobileMenuOpen(false)}
                         tabIndex={0}
                       >
                         {item.icon}
-                        <span>{item.label}</span>
+                        <span className="flex-1">{item.label}</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       </Link>
                     </li>
                   ))}
@@ -269,42 +335,66 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               )}
             </nav>
             
-            <div className="p-4 border-t">
+            <div className="mt-auto">
+              <Separator />
+              
               {isAuthenticated ? (
-                <Button
-                  variant="ghost"
-                  className="w-full flex items-center gap-3 justify-start"
-                  onClick={() => logout()}
-                  tabIndex={0}
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span>Logout</span>
-                </Button>
+                <div className="p-4">
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center gap-3 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      logout();
+                    }}
+                    tabIndex={0}
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span>Logout</span>
+                  </Button>
+                </div>
               ) : (
-                <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-3 p-4">
                   <Button 
                     variant="outline" 
-                    size="sm" 
-                    className="w-full justify-start border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300" 
+                    className="w-full justify-center border-blue-200 text-blue-700" 
                     asChild
                   >
-                    <Link href="/auth/login">
-                      <User className="h-4 w-4 mr-2" />
-                      <span>Login</span>
-                    </Link>
+                    <Link href="/auth/login">Login</Link>
                   </Button>
                   <Button 
-                    size="sm" 
-                    className="w-full justify-start bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm" 
+                    className="w-full justify-center bg-blue-600" 
                     asChild
                   >
-                    <Link href="/auth/signup">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      <span>Sign Up</span>
-                    </Link>
+                    <Link href="/auth/signup">Sign Up</Link>
                   </Button>
                 </div>
               )}
+              
+              {/* WhatsApp contact button */}
+              <div className="p-4 pt-0">
+                <Button 
+                  variant="outline" 
+                  className="w-full flex items-center gap-2 border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700"
+                  asChild
+                >
+                  <a 
+                    href="https://wa.me/353123456789" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      viewBox="0 0 24 24" 
+                      fill="currentColor" 
+                      className="h-5 w-5"
+                    >
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                    </svg>
+                    Contact via WhatsApp
+                  </a>
+                </Button>
+              </div>
             </div>
           </div>
         </SheetContent>
@@ -313,19 +403,103 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* Main content */}
       <div className="flex flex-col flex-1 w-0 overflow-hidden">
         {/* Header */}
-        <header className="flex items-center justify-between h-16 px-4 sm:px-6 border-b flex-shrink-0">
-          <h1 className="text-xl font-semibold truncate md:hidden">Nixerly</h1>
-          
-          <div className="flex items-center ml-auto gap-4">
-            <Button variant="ghost" size="icon">
-              <Bell className="h-5 w-5" />
-              <span className="sr-only">Notifications</span>
+        <header className="flex items-center justify-between h-16 px-4 sm:px-6 border-b flex-shrink-0 bg-white">
+          <div className="flex items-center gap-2">
+            {/* Mobile menu button */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="lg:hidden"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Open navigation menu</span>
             </Button>
+            
+            {/* Logo for mobile */}
+            <Link href="/" className="flex items-center gap-2">
+              <span className="text-xl font-semibold text-blue-600 lg:hidden">Nixerly</span>
+            </Link>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {/* Notifications dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  {notifications.some(n => n.unread) && (
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                  )}
+                  <span className="sr-only">Notifications</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel className="flex items-center justify-between">
+                  <span>Notifications</span>
+                  <Badge variant="outline" className="text-xs font-normal">
+                    {notifications.filter(n => n.unread).length} new
+                  </Badge>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <div className="max-h-[300px] overflow-y-auto">
+                  {notifications.length > 0 ? (
+                    notifications.map((notification) => (
+                      <DropdownMenuItem key={notification.id} className="flex flex-col items-start p-3 cursor-pointer">
+                        <div className="flex w-full gap-3">
+                          <div className={cn(
+                            "rounded-full p-2 flex-shrink-0",
+                            notification.type === 'application' 
+                              ? "bg-blue-100 text-blue-600" 
+                              : notification.type === 'message' 
+                                ? "bg-green-100 text-green-600" 
+                                : "bg-purple-100 text-purple-600"
+                          )}>
+                            {notification.type === 'application' && <FileText className="h-4 w-4" />}
+                            {notification.type === 'message' && <MessageSquare className="h-4 w-4" />}
+                            {notification.type === 'profile' && <User className="h-4 w-4" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className={cn(
+                                "font-medium text-sm leading-tight",
+                                notification.unread ? "text-gray-900" : "text-gray-700"
+                              )}>
+                                {notification.title}
+                              </p>
+                              {notification.unread && (
+                                <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {notification.time}
+                            </p>
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    ))
+                  ) : (
+                    <div className="py-4 text-center text-sm text-gray-500">
+                      No notifications yet
+                    </div>
+                  )}
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="justify-center text-sm text-blue-600 font-medium cursor-pointer">
+                  View all notifications
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {/* WhatsApp button (only visible on larger screens) */}
             <Button 
               variant="ghost" 
               size="icon" 
               asChild
-              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+              className="hidden sm:flex text-green-600 hover:text-green-700 hover:bg-green-50"
             >
               <a 
                 href="https://wa.me/353123456789" 
@@ -341,15 +515,59 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 >
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
                 </svg>
-                <span className="sr-only">WhatsApp</span>
               </a>
             </Button>
             
+            {/* User profile dropdown or auth buttons */}
             {isAuthenticated ? (
-              <Avatar>
-                <AvatarImage src={userType === "professional" ? "/avatars/professional.jpg" : "/avatars/business.jpg"} alt={userName || ""} />
-                <AvatarFallback>{userInitials}</AvatarFallback>
-              </Avatar>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="flex items-center gap-2 h-8 px-2 sm:h-10 sm:px-3"
+                  >
+                    <Avatar className="h-8 w-8 shrink-0">
+                      <AvatarImage 
+                        src={userType === "professional" ? "/avatars/professional.jpg" : "/avatars/business.jpg"} 
+                        alt={userName || ""} 
+                      />
+                      <AvatarFallback>{userInitials}</AvatarFallback>
+                    </Avatar>
+                    <div className="hidden sm:flex flex-col items-start leading-none">
+                      <span className="text-sm font-medium">{userName}</span>
+                      <span className="text-xs text-muted-foreground">{userType}</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 hidden sm:block text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      {pathname === "/dashboard/messages" ? "Return to Dashboard" : "Dashboard"}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/profile">
+                      <User className="h-4 w-4 mr-2" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/settings">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => logout()} className="text-red-600 cursor-pointer">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" className="hidden sm:flex" asChild>
