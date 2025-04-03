@@ -18,6 +18,10 @@ export interface IProfessional {
   profileComplete: number;
   verified: boolean;
   jobApplications?: IJobApplication[]; // Track job applications
+  experienceLevel?: 'entry' | 'intermediate' | 'expert';
+  rating?: number;
+  projectTypes?: string[];
+  yearsOfExperience?: number;
 }
 
 // Job application type
@@ -90,6 +94,11 @@ export interface IProfessionalFilters {
   availability: boolean | null;
   location?: string;
   verified: boolean | null;
+  experienceLevel?: 'entry' | 'intermediate' | 'expert' | null;
+  hasCertifications?: boolean | null;
+  rating?: number | null;
+  maxDistance?: number | null;
+  projectTypes?: string[];
 }
 
 export interface IJobFilters {
@@ -138,6 +147,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     availability: null,
     location: undefined,
     verified: null,
+    experienceLevel: null,
+    hasCertifications: null,
+    rating: null,
+    maxDistance: null,
+    projectTypes: [],
   },
   jobFilters: {
     skills: [],

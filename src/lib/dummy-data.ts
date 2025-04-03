@@ -51,6 +51,10 @@ export const dummyProfessionals: IProfessional[] = [
     location: "San Francisco, CA",
     profileComplete: 95,
     verified: true,
+    experienceLevel: "expert",
+    rating: 4.9,
+    projectTypes: ["Commercial", "Residential", "Industrial"],
+    yearsOfExperience: 12,
   },
   {
     id: "p2",
@@ -82,6 +86,10 @@ export const dummyProfessionals: IProfessional[] = [
     location: "New York, NY",
     profileComplete: 85,
     verified: true,
+    experienceLevel: "intermediate",
+    rating: 4.5,
+    projectTypes: ["Commercial", "Residential"],
+    yearsOfExperience: 6,
   },
   {
     id: "p3",
@@ -115,6 +123,10 @@ export const dummyProfessionals: IProfessional[] = [
     location: "Austin, TX",
     profileComplete: 90,
     verified: false,
+    experienceLevel: "intermediate",
+    rating: 4.2,
+    projectTypes: ["Commercial", "Industrial"],
+    yearsOfExperience: 5,
   },
 ];
 
@@ -328,4 +340,19 @@ export const industriesList = [
   "Engineering",
   "Property Management",
   "Real Estate Development"
+];
+
+// Project Types list for filters
+export const projectTypesList = [
+  "Residential",
+  "Commercial",
+  "Industrial",
+  "Institutional",
+  "Infrastructure",
+  "Renovation",
+  "New Construction",
+  "Historic Restoration",
+  "Sustainable/Green",
+  "Small Projects",
+  "Large Projects"
 ]; 

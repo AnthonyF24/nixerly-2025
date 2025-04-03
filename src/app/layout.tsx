@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./enable-scroll.js";
 import { Toaster } from "@/components/ui/toaster";
+import { NotificationProvider } from "@/components/ui/notification";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +30,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-auto h-auto min-h-screen`}
       >
-        {children}
+        <NotificationProvider>
+          {children}
+        </NotificationProvider>
         <Toaster />
       </body>
     </html>

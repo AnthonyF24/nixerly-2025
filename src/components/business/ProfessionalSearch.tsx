@@ -11,7 +11,7 @@ import { useAppStore } from "@/lib/store";
 import { dummyProfessionals } from "@/lib/dummy-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
-import { locationsList, skillsList } from "@/lib/dummy-data";
+import { locationsList, skillsList, projectTypesList } from "@/lib/dummy-data";
 import { 
   CheckCircle, 
   MapPin, 
@@ -29,7 +29,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  Award
+  Award,
+  Briefcase,
+  Medal,
+  CircleSlash,
+  Ruler,
+  Percent
 } from "lucide-react";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
@@ -37,6 +42,7 @@ import { IProfessional, IPortfolioItem } from "@/lib/store";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogClose, DialogTitle } from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
 
 // Sample placeholder images for portfolio demonstration
 const PLACEHOLDER_IMAGES = [
@@ -67,6 +73,9 @@ export const ProfessionalSearch = () => {
   const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
   const [pendingFilters, setPendingFilters] = useState(professionalFilters);
   const [isSearching, setIsSearching] = useState(false);
+  const [showProjectTypeSuggestions, setShowProjectTypeSuggestions] = useState(false);
+  const [projectTypeSearchQuery, setProjectTypeSearchQuery] = useState("");
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
   
   // Check if the business has an active subscription
   const hasActiveSubscription = business?.verified === true;
@@ -252,6 +261,30 @@ export const ProfessionalSearch = () => {
       return false;
     }
     
+    // Filter by experience level
+    if (professionalFilters.experienceLevel && professional.experienceLevel !== professionalFilters.experienceLevel) {
+      return false;
+    }
+    
+    // Filter by minimum rating
+    if (professionalFilters.rating !== null && professionalFilters.rating !== undefined && 
+        (professional.rating === undefined || professional.rating < professionalFilters.rating)) {
+      return false;
+    }
+    
+    // Filter by has certifications
+    if (professionalFilters.hasCertifications === true && 
+        (!professional.certifications || professional.certifications.length === 0)) {
+      return false;
+    }
+    
+    // Filter by project types - check if ANY of the selected project types matches (OR logic)
+    if (professionalFilters.projectTypes && professionalFilters.projectTypes.length > 0 && 
+        (!professional.projectTypes || 
+         !professionalFilters.projectTypes.some(type => professional.projectTypes?.includes(type)))) {
+      return false;
+    }
+    
     // Filter by search query (name, bio, or skills)
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -298,12 +331,41 @@ export const ProfessionalSearch = () => {
     setProfessionalFilters({ verified });
   };
   
+  const handleExperienceLevelChange = (experienceLevel: 'entry' | 'intermediate' | 'expert' | null) => {
+    setProfessionalFilters({ experienceLevel });
+  };
+  
+  const handleRatingChange = (rating: number | null) => {
+    setProfessionalFilters({ rating });
+  };
+  
+  const handleCertificationsChange = (hasCertifications: boolean | null) => {
+    setProfessionalFilters({ hasCertifications });
+  };
+  
+  const handleProjectTypeToggle = (projectType: string) => {
+    const updatedProjectTypes = professionalFilters.projectTypes?.includes(projectType)
+      ? professionalFilters.projectTypes.filter(t => t !== projectType)
+      : [...(professionalFilters.projectTypes || []), projectType];
+    
+    setProfessionalFilters({ projectTypes: updatedProjectTypes });
+  };
+  
+  const handleMaxDistanceChange = (maxDistance: number | null) => {
+    setProfessionalFilters({ maxDistance });
+  };
+  
   const clearFilters = () => {
     setProfessionalFilters({
       skills: [],
       availability: null,
       location: undefined,
       verified: null,
+      experienceLevel: null,
+      hasCertifications: null,
+      rating: null,
+      maxDistance: null,
+      projectTypes: [],
     });
     setSearchQuery("");
   };
@@ -313,13 +375,13 @@ export const ProfessionalSearch = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-screen-2xl mx-auto bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 p-4 rounded-xl">
       <div className="md:col-span-1 relative h-fit">
-        <Card className="sticky top-4 z-30 shadow-md border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm">
-          <CardHeader className="pb-2 space-y-1 bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-t-lg">
-            <CardTitle className="text-lg font-medium flex items-center text-slate-800 dark:text-slate-200">
+        <Card className="sticky top-4 z-30 shadow-md border-slate-200 dark:border-slate-800 bg-gradient-to-b from-slate-100 to-white dark:from-slate-800 dark:to-slate-900/95 backdrop-blur-sm">
+          <CardHeader className="pb-2 space-y-1 bg-gradient-to-r from-indigo-50 to-slate-50 dark:from-indigo-950/30 dark:to-slate-900/80 border-b border-indigo-100/80 dark:border-indigo-800/30">
+            <CardTitle className="text-lg font-medium flex items-center text-indigo-900 dark:text-indigo-300">
               <Filter className="h-4 w-4 mr-2 text-indigo-500 dark:text-indigo-400" />
               Filter Professionals
             </CardTitle>
-            <CardDescription className="text-xs text-slate-500 dark:text-slate-400">
+            <CardDescription className="text-sm text-indigo-700/70 dark:text-indigo-400/70 font-medium">
               {filteredProfessionals.length} professionals found
             </CardDescription>
           </CardHeader>
@@ -399,6 +461,197 @@ export const ProfessionalSearch = () => {
                 </SelectContent>
               </Select>
             </div>
+            
+            <Button 
+              variant="outline" 
+              className="w-full text-sm font-normal justify-between"
+              onClick={() => setShowMoreFilters(!showMoreFilters)}
+            >
+              <span>Advanced Filters</span>
+              {showMoreFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+
+            {showMoreFilters && (
+              <>
+                <div>
+                  <h3 className="text-sm font-medium mb-3 text-slate-800 dark:text-slate-200">Experience Level</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge 
+                      variant={professionalFilters.experienceLevel === 'entry' ? 'default' : 'outline'}
+                      className={`cursor-pointer transition-all duration-200 hover:shadow-sm ${professionalFilters.experienceLevel === 'entry' ? 'bg-emerald-500 hover:bg-emerald-600' : 'border-slate-200 hover:border-indigo-300 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'}`}
+                      onClick={() => handleExperienceLevelChange(professionalFilters.experienceLevel === 'entry' ? null : 'entry')}
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && handleExperienceLevelChange(professionalFilters.experienceLevel === 'entry' ? null : 'entry')}
+                      aria-label="Filter by entry level experience"
+                    >
+                      Entry Level
+                    </Badge>
+                    <Badge 
+                      variant={professionalFilters.experienceLevel === 'intermediate' ? 'default' : 'outline'}
+                      className={`cursor-pointer transition-all duration-200 hover:shadow-sm ${professionalFilters.experienceLevel === 'intermediate' ? 'bg-blue-500 hover:bg-blue-600' : 'border-slate-200 hover:border-indigo-300 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'}`}
+                      onClick={() => handleExperienceLevelChange(professionalFilters.experienceLevel === 'intermediate' ? null : 'intermediate')}
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && handleExperienceLevelChange(professionalFilters.experienceLevel === 'intermediate' ? null : 'intermediate')}
+                      aria-label="Filter by intermediate experience"
+                    >
+                      Intermediate
+                    </Badge>
+                    <Badge 
+                      variant={professionalFilters.experienceLevel === 'expert' ? 'default' : 'outline'}
+                      className={`cursor-pointer transition-all duration-200 hover:shadow-sm ${professionalFilters.experienceLevel === 'expert' ? 'bg-purple-500 hover:bg-purple-600' : 'border-slate-200 hover:border-indigo-300 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'}`}
+                      onClick={() => handleExperienceLevelChange(professionalFilters.experienceLevel === 'expert' ? null : 'expert')}
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && handleExperienceLevelChange(professionalFilters.experienceLevel === 'expert' ? null : 'expert')}
+                      aria-label="Filter by expert level experience"
+                    >
+                      <Award className="h-3 w-3 mr-1" />
+                      Expert
+                    </Badge>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium mb-3 text-slate-800 dark:text-slate-200">Certifications</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge 
+                      variant={professionalFilters.hasCertifications === true ? 'default' : 'outline'}
+                      className={`cursor-pointer transition-all duration-200 hover:shadow-sm ${professionalFilters.hasCertifications === true ? 'bg-amber-500 hover:bg-amber-600' : 'border-slate-200 hover:border-indigo-300 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'}`}
+                      onClick={() => handleCertificationsChange(professionalFilters.hasCertifications === true ? null : true)}
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && handleCertificationsChange(professionalFilters.hasCertifications === true ? null : true)}
+                      aria-label="Filter by having certifications"
+                    >
+                      <Medal className="h-3 w-3 mr-1" />
+                      Has Certifications
+                    </Badge>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium mb-3 text-slate-800 dark:text-slate-200">Minimum Rating</h3>
+                  <div className="flex items-center space-x-2">
+                    <Select
+                      value={professionalFilters.rating?.toString() || "any"}
+                      onValueChange={(value) => handleRatingChange(value === "any" ? null : parseFloat(value))}
+                    >
+                      <SelectTrigger className="w-full focus-visible:ring-indigo-300 border-slate-200 dark:border-slate-700 transition-all">
+                        <SelectValue placeholder="Any Rating" />
+                      </SelectTrigger>
+                      <SelectContent className="border-slate-200 dark:border-slate-700">
+                        <SelectItem value="any">Any Rating</SelectItem>
+                        <SelectItem value="5">★★★★★ 5.0+</SelectItem>
+                        <SelectItem value="4.5">★★★★☆ 4.5+</SelectItem>
+                        <SelectItem value="4">★★★★ 4.0+</SelectItem>
+                        <SelectItem value="3.5">★★★☆ 3.5+</SelectItem>
+                        <SelectItem value="3">★★★ 3.0+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-medium text-slate-800 dark:text-slate-200">Project Types</h3>
+                    {professionalFilters.projectTypes && professionalFilters.projectTypes.length > 0 && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 text-xs px-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+                        onClick={() => setProfessionalFilters({ projectTypes: [] })}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {professionalFilters.projectTypes && professionalFilters.projectTypes.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {professionalFilters.projectTypes.map(projectType => (
+                        <Badge key={projectType} variant="secondary" className="inline-flex items-center gap-1 py-1 pr-1 pl-2 group bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 transition-all">
+                          {projectType}
+                          <span 
+                            className="ml-1 p-0.5 rounded-full hover:bg-indigo-200/50 dark:hover:bg-indigo-800/50 cursor-pointer transition-colors"
+                            onClick={() => handleProjectTypeToggle(projectType)}
+                            tabIndex={0}
+                            onKeyDown={(e) => e.key === 'Enter' && handleProjectTypeToggle(projectType)}
+                            aria-label={`Remove ${projectType} filter`}
+                          >
+                            <X className="h-3 w-3" />
+                          </span>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="relative">
+                    <Input
+                      placeholder="Search project types..."
+                      className="h-9 focus-visible:ring-indigo-300 border-slate-200 dark:border-slate-700 transition-all"
+                      value={projectTypeSearchQuery}
+                      onChange={(e) => {
+                        setProjectTypeSearchQuery(e.target.value);
+                        setShowProjectTypeSuggestions(true);
+                      }}
+                      onFocus={() => setShowProjectTypeSuggestions(true)}
+                      aria-label="Search for project types to add multiple filters"
+                    />
+                    
+                    {showProjectTypeSuggestions && projectTypeSearchQuery.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-white dark:bg-slate-900 rounded-md shadow-md border border-slate-200 dark:border-slate-700">
+                        {projectTypesList
+                          .filter(projectType => 
+                            projectType.toLowerCase().includes(projectTypeSearchQuery.toLowerCase()) &&
+                            (!professionalFilters.projectTypes || !professionalFilters.projectTypes.includes(projectType))
+                          )
+                          .slice(0, 8)
+                          .map(projectType => (
+                            <div 
+                              key={projectType} 
+                              className="px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-slate-700 dark:text-slate-300"
+                              onClick={() => {
+                                handleProjectTypeToggle(projectType);
+                                setProjectTypeSearchQuery("");
+                                setShowProjectTypeSuggestions(false);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleProjectTypeToggle(projectType);
+                                  setProjectTypeSearchQuery("");
+                                  setShowProjectTypeSuggestions(false);
+                                }
+                              }}
+                              tabIndex={0}
+                            >
+                              {projectType}
+                            </div>
+                          ))}
+                        
+                        {projectTypesList.filter(projectType => 
+                          projectType.toLowerCase().includes(projectTypeSearchQuery.toLowerCase()) &&
+                          (!professionalFilters.projectTypes || !professionalFilters.projectTypes.includes(projectType))
+                        ).length === 0 && (
+                          <div className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">
+                            No matching project types found
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 italic">
+                    Filter by project types professionals have worked on
+                  </div>
+                  
+                  {showProjectTypeSuggestions && (
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowProjectTypeSuggestions(false)}
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
+              </>
+            )}
             
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -505,7 +758,7 @@ export const ProfessionalSearch = () => {
           
           <CardFooter className="border-t border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/20 p-4 flex flex-col gap-3">
             <Button 
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white transition-all flex items-center gap-2"
+              className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white shadow-md transition-all flex items-center gap-2"
               onClick={applyFilters}
               disabled={isSearching}
             >
@@ -527,7 +780,11 @@ export const ProfessionalSearch = () => {
                 !professionalFilters.location && 
                 professionalFilters.availability === null &&
                 professionalFilters.verified === null &&
-                searchQuery === ""
+                searchQuery === "" &&
+                professionalFilters.experienceLevel === null &&
+                professionalFilters.hasCertifications === null &&
+                professionalFilters.rating === null &&
+                (!professionalFilters.projectTypes || professionalFilters.projectTypes.length === 0)
               }
             >
               Clear All Filters
@@ -537,10 +794,22 @@ export const ProfessionalSearch = () => {
       </div>
       
       <div className="md:col-span-3 space-y-5">
-        <div className="bg-gradient-to-r from-indigo-50 to-slate-50 dark:from-indigo-950/30 dark:to-slate-900/80 p-4 rounded-lg shadow-sm border border-indigo-100/80 dark:border-indigo-800/30">
-          <h2 className="text-lg font-medium text-indigo-900 dark:text-indigo-200">
-            {filteredProfessionals.length} Professionals Found
-          </h2>
+        <div className="bg-gradient-to-r from-indigo-100 to-indigo-50 dark:from-indigo-900/40 dark:to-indigo-900/20 p-4 rounded-lg shadow-sm border border-indigo-200/80 dark:border-indigo-800/30">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-medium text-indigo-900 dark:text-indigo-200 flex items-center">
+              <UserCheck className="h-5 w-5 mr-2 text-indigo-500 dark:text-indigo-400" />
+              <span>{filteredProfessionals.length} Professionals Found</span>
+            </h2>
+            
+            <div className="flex gap-2">
+              <Badge className="bg-indigo-500 hover:bg-indigo-600 text-white shadow-sm">
+                Highest Rated
+              </Badge>
+              <Badge variant="outline" className="border-indigo-200 text-indigo-700 dark:border-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 shadow-sm">
+                Most Recent
+              </Badge>
+            </div>
+          </div>
         </div>
         
         {isSearching ? (
@@ -583,8 +852,6 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
   const [activeTab, setActiveTab] = useState<string>("overview");
   const portfolioRef = useRef<HTMLDivElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  
-  // Add state for modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImageIndex, setModalImageIndex] = useState(0);
   
@@ -615,7 +882,6 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
     }
   };
   
-  // Add handlers for modal navigation
   const handleModalOpen = (index: number) => {
     setModalImageIndex(index);
     setModalOpen(true);
@@ -635,7 +901,6 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
     );
   };
   
-  // Add keyboard navigation for modal
   const handleModalKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowLeft') {
       handleModalPrev();
@@ -650,82 +915,150 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-slate-200 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-800/50 group bg-white dark:bg-slate-900 rounded-xl">
       <CardContent className="p-0">
         <div className="flex flex-col">
-          <div className="flex flex-col sm:flex-row p-4 border-b border-slate-200 dark:border-slate-700">
-            <div className="flex-shrink-0 sm:mr-5 mb-4 sm:mb-0 flex flex-col items-center">
-              <div className="relative">
-                <Avatar className="h-28 w-28 border-2 border-white dark:border-slate-800 shadow-md mb-2 sm:mb-2 ring-2 ring-indigo-100 dark:ring-indigo-900/50 ring-offset-2 ring-offset-white dark:ring-offset-slate-900">
-                  <AvatarImage src="/images/avatars/placeholder.jpg" alt={professional.name} />
-                  <AvatarFallback className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium">
-                    {professional.name.split(" ").map(n => n[0]).join("")}
-                  </AvatarFallback>
-                </Avatar>
-                {professional.verified && (
-                  <div className="absolute bottom-2 right-0 bg-blue-500 rounded-full p-0.5 border-2 border-white dark:border-slate-800">
-                    <CheckCircle className="h-3.5 w-3.5 text-white" />
+          {/* Header Section */}
+          <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+              {/* Avatar & Status Section */}
+              <div className="flex-shrink-0 flex flex-col items-center">
+                <div className="relative mb-2">
+                  <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white dark:border-slate-800 shadow-md ring-2 ring-indigo-100 dark:ring-indigo-900/50 ring-offset-2 ring-offset-white dark:ring-offset-slate-900">
+                    <AvatarImage src="/images/avatars/placeholder.jpg" alt={professional.name} />
+                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-medium text-xl">
+                      {professional.name.split(" ").map(n => n[0]).join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  {professional.verified && (
+                    <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1 border-2 border-white dark:border-slate-800 shadow-sm">
+                      <CheckCircle className="h-4 w-4 text-white" />
+                    </div>
+                  )}
+                </div>
+                
+                <Badge 
+                  variant={professional.availability ? "default" : "outline"}
+                  className={`text-xs py-1 px-3 shadow-sm
+                    ${professional.availability 
+                      ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white" 
+                      : "text-amber-600 border-amber-200 dark:text-amber-400 dark:border-amber-800/50"
+                    }`}
+                >
+                  {professional.availability ? "Available Now" : "Currently Unavailable"}
+                </Badge>
+                
+                {professional.rating && (
+                  <div className="mt-3 flex items-center bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-md text-amber-700 dark:text-amber-300 shadow-sm">
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star 
+                          key={star} 
+                          className={`h-3.5 w-3.5 ${star <= Math.round(professional.rating || 0) ? "fill-amber-500 text-amber-500" : "fill-gray-200 text-gray-200 dark:fill-gray-700 dark:text-gray-700"}`} 
+                        />
+                      ))}
+                    </div>
+                    <span className="ml-1.5 font-medium">
+                      {professional.rating?.toFixed(1)}
+                    </span>
                   </div>
                 )}
               </div>
               
-              <div className="flex items-center justify-center gap-1 w-full -mt-1">
-                <Badge 
-                  variant={professional.availability ? "default" : "outline"}
-                  className={`text-[10px] py-0.5 px-2 ${professional.availability ? "bg-emerald-500 text-white" : "text-amber-600 border-amber-200 dark:text-amber-400 dark:border-amber-800/50"}`}
-                >
-                  {professional.availability ? "Available" : "Unavailable"}
-                </Badge>
-              </div>
-            </div>
-            
-            <div className="flex-1 sm:pl-1">
-              <div className="flex flex-col sm:flex-row justify-between gap-2">
+              {/* Info Section */}
+              <div className="flex-1 space-y-3">
                 <div>
-                  <h3 className="text-base font-semibold text-indigo-800 dark:text-indigo-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    {professional.name}
-                  </h3>
-                  
-                  <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-600 dark:text-slate-400">
-                    {professional.location && (
-                      <div className="flex items-center bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 rounded-md">
-                        <MapPin className="h-3 w-3 mr-1 text-indigo-500 dark:text-indigo-400" />
-                        {professional.location}
-                      </div>
-                    )}
-                    
-                    {professional.skills.slice(0, 1).map(skill => (
-                      <Badge key={skill} variant="secondary" className="text-[10px] py-0 px-1.5 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                        {skill}
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-xl font-bold text-indigo-800 dark:text-indigo-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      {professional.name}
+                    </h3>
+                    {professional.experienceLevel && (
+                      <Badge 
+                        variant="secondary" 
+                        className={`
+                          ${professional.experienceLevel === 'expert' 
+                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-200 dark:border-purple-800/30' 
+                            : professional.experienceLevel === 'intermediate'
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800/30'
+                              : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/30'
+                          }`
+                        }
+                      >
+                        {professional.experienceLevel === 'expert' && <Award className="h-3 w-3 mr-1" />}
+                        {professional.experienceLevel.charAt(0).toUpperCase() + professional.experienceLevel.slice(1)}
                       </Badge>
-                    ))}
-                    
-                    {professional.skills.length > 1 && (
-                      <span className="text-xs text-slate-500 dark:text-slate-400">+{professional.skills.length - 1} more</span>
                     )}
                   </div>
+                  
+                  {professional.location && (
+                    <div className="flex items-center mb-2 text-sm text-slate-600 dark:text-slate-400">
+                      <MapPin className="h-3.5 w-3.5 mr-1 text-indigo-500 dark:text-indigo-400" />
+                      {professional.location}
+                      {professional.yearsOfExperience && (
+                        <span className="ml-3 flex items-center">
+                          <Briefcase className="h-3.5 w-3.5 mr-1 text-indigo-500 dark:text-indigo-400" />
+                          {professional.yearsOfExperience}+ years experience
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 
-                <div className="flex gap-2 mt-2 sm:mt-0">
-                  <Button variant="outline" size="sm" className="h-7 rounded-full px-3 text-xs text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/50 hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-300 transition-colors">
-                    View
+                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                  {professional.bio || "No bio provided."}
+                </p>
+                
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {professional.skills.slice(0, 5).map(skill => (
+                    <Badge key={skill} variant="secondary" className="text-xs py-0.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 transition-colors">
+                      {skill}
+                    </Badge>
+                  ))}
+                  
+                  {professional.skills.length > 5 && (
+                    <Badge variant="outline" className="text-xs py-0.5 px-2 border-indigo-200 dark:border-indigo-800/50 text-indigo-600 dark:text-indigo-400">
+                      +{professional.skills.length - 5} more
+                    </Badge>
+                  )}
+                </div>
+                
+                {professional.projectTypes && professional.projectTypes.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Projects:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {professional.projectTypes.map(type => (
+                        <Badge key={type} variant="outline" className="text-xs py-0 px-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                          {type}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full px-4 text-sm font-medium text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/50 hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-300 transition-colors shadow-sm"
+                  >
+                    View Profile
                   </Button>
-                  <Button size="sm" className="h-7 rounded-full px-3 text-xs bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                  <Button
+                    size="sm"
+                    className="rounded-full px-4 text-sm font-medium bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white shadow-sm transition-colors"
+                  >
                     Contact
                   </Button>
                 </div>
               </div>
-              
-              <p className="mt-2 text-xs line-clamp-2 text-slate-600 dark:text-slate-400">
-                {professional.bio || "No bio provided."}
-              </p>
             </div>
           </div>
           
+          {/* Tabs Section */}
           <Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab}>
             <div className="px-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/20">
-              <TabsList className="h-8 bg-transparent p-0 w-full justify-start gap-3">
+              <TabsList className="h-10 bg-transparent p-0 w-full justify-start gap-4">
                 <TabsTrigger 
                   value="overview" 
                   className={cn(
-                    "px-2 py-1.5 h-full text-xs data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 rounded-none border-transparent data-[state=active]:border-indigo-600 dark:data-[state=active]:border-indigo-400 data-[state=active]:font-medium data-[state=active]:text-indigo-700 dark:data-[state=active]:text-indigo-300 text-slate-600 dark:text-slate-400",
+                    "px-3 py-2 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 rounded-none border-transparent data-[state=active]:border-indigo-600 dark:data-[state=active]:border-indigo-400 data-[state=active]:font-medium data-[state=active]:text-indigo-700 dark:data-[state=active]:text-indigo-300 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors",
                   )}
                 >
                   Overview
@@ -733,14 +1066,14 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
                 <TabsTrigger 
                   value="portfolio" 
                   className={cn(
-                    "px-2 py-1.5 h-full text-xs data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 rounded-none border-transparent data-[state=active]:border-indigo-600 dark:data-[state=active]:border-indigo-400 data-[state=active]:font-medium data-[state=active]:text-indigo-700 dark:data-[state=active]:text-indigo-300 text-slate-600 dark:text-slate-400",
+                    "px-3 py-2 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 rounded-none border-transparent data-[state=active]:border-indigo-600 dark:data-[state=active]:border-indigo-400 data-[state=active]:font-medium data-[state=active]:text-indigo-700 dark:data-[state=active]:text-indigo-300 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors",
                     !hasPortfolio && "opacity-50 cursor-not-allowed"
                   )}
                   disabled={!hasPortfolio}
                 >
                   Portfolio
                   {portfolioItems.length > 0 && (
-                    <span className="ml-1 text-[10px] rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1 py-0.5">
+                    <span className="ml-1.5 text-xs rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5">
                       {portfolioItems.length}
                     </span>
                   )}
@@ -748,14 +1081,14 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
                 <TabsTrigger 
                   value="certifications" 
                   className={cn(
-                    "px-2 py-1.5 h-full text-xs data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 rounded-none border-transparent data-[state=active]:border-indigo-600 dark:data-[state=active]:border-indigo-400 data-[state=active]:font-medium data-[state=active]:text-indigo-700 dark:data-[state=active]:text-indigo-300 text-slate-600 dark:text-slate-400",
+                    "px-3 py-2 h-full text-sm data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 rounded-none border-transparent data-[state=active]:border-indigo-600 dark:data-[state=active]:border-indigo-400 data-[state=active]:font-medium data-[state=active]:text-indigo-700 dark:data-[state=active]:text-indigo-300 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors",
                     (!professional.certifications || professional.certifications.length === 0) && "opacity-50 cursor-not-allowed"
                   )}
                   disabled={!professional.certifications || professional.certifications.length === 0}
                 >
                   Certifications
                   {professional.certifications && professional.certifications.length > 0 && (
-                    <span className="ml-1 text-[10px] rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1 py-0.5">
+                    <span className="ml-1.5 text-xs rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5">
                       {professional.certifications.length}
                     </span>
                   )}
@@ -767,10 +1100,10 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
               <TabsContent value="overview" className="p-4 pt-3 h-full overflow-y-auto focus-visible:outline-none focus-visible:ring-0 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h4 className="text-[10px] uppercase font-medium tracking-wide text-indigo-500 dark:text-indigo-400 mb-2">Skills</h4>
+                    <h4 className="text-xs uppercase font-medium tracking-wide text-indigo-500 dark:text-indigo-400 mb-2 border-b border-indigo-100 dark:border-indigo-900/30 pb-1">Skills</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {professional.skills.map(skill => (
-                        <Badge key={skill} variant="secondary" className="text-[10px] py-0 px-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 transition-colors">
+                        <Badge key={skill} variant="secondary" className="text-xs py-0.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 transition-colors">
                           {skill}
                         </Badge>
                       ))}
@@ -779,14 +1112,14 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
                   
                   {professional.certifications && professional.certifications.length > 0 && (
                     <div>
-                      <h4 className="text-[10px] uppercase font-medium tracking-wide text-indigo-500 dark:text-indigo-400 mb-2">Certification Highlights</h4>
-                      <div className="space-y-1.5">
+                      <h4 className="text-xs uppercase font-medium tracking-wide text-indigo-500 dark:text-indigo-400 mb-2 border-b border-indigo-100 dark:border-indigo-900/30 pb-1">Certification Highlights</h4>
+                      <div className="space-y-2">
                         {professional.certifications.slice(0, 2).map(cert => (
-                          <div key={cert.id} className="flex items-start gap-2 bg-indigo-50/50 dark:bg-indigo-900/20 p-1.5 rounded-md border border-indigo-100 dark:border-indigo-800/30">
-                            <Award className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400 shrink-0 mt-0.5" />
+                          <div key={cert.id} className="flex items-start gap-2 bg-indigo-50/50 dark:bg-indigo-900/20 p-2 rounded-md border border-indigo-100 dark:border-indigo-800/30 shadow-sm hover:shadow-md transition-shadow">
+                            <Award className="h-4 w-4 text-indigo-500 dark:text-indigo-400 shrink-0 mt-0.5" />
                             <div>
-                              <div className="text-xs font-medium text-indigo-800 dark:text-indigo-300">{cert.name}</div>
-                              <div className="text-[10px] text-slate-600 dark:text-slate-400">
+                              <div className="text-sm font-medium text-indigo-800 dark:text-indigo-300">{cert.name}</div>
+                              <div className="text-xs text-slate-600 dark:text-slate-400">
                                 {cert.issuer} • {new Date(cert.date).getFullYear()}
                                 {cert.verified && <span className="text-blue-600 dark:text-blue-400 ml-1">(Verified)</span>}
                               </div>
@@ -831,7 +1164,7 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
                       {portfolioItems.map((item, index) => (
                         <div 
                           key={item.id}
-                          className="flex-shrink-0 h-[175px] w-auto rounded-md overflow-hidden border border-indigo-100 dark:border-indigo-800/30 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                          className="flex-shrink-0 group/item relative h-[175px] w-[250px] rounded-md overflow-hidden border border-indigo-100 dark:border-indigo-800/30 bg-indigo-50/50 dark:bg-indigo-900/20 shadow-sm hover:shadow-md cursor-pointer hover:opacity-95 transition-all"
                           onClick={() => handleModalOpen(index)}
                           tabIndex={0}
                           onKeyDown={(e) => e.key === 'Enter' && handleModalOpen(index)}
@@ -840,8 +1173,12 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
                           <img 
                             src={getImageUrl(item, index)} 
                             alt={item.altText || item.title || `Portfolio image ${index + 1}`}
-                            className="h-full w-auto object-contain"
+                            className="h-full w-full object-cover"
                           />
+                          <div className="absolute inset-0 bg-black/0 group-hover/item:bg-black/40 transition-colors"></div>
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                            <h5 className="text-xs font-medium text-white truncate">{item.title}</h5>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -853,31 +1190,31 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
                 {professional.certifications && professional.certifications.length > 0 ? (
                   <div className="space-y-3">
                     {professional.certifications.map(cert => (
-                      <div key={cert.id} className="flex gap-2 border-b border-indigo-100 dark:border-indigo-800/30 pb-3 last:border-0 last:pb-0">
-                        <div className="p-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-md h-fit">
-                          <Award className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                      <div key={cert.id} className="flex gap-3 border-b border-indigo-100 dark:border-indigo-800/30 pb-3 last:border-0 last:pb-0 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 p-2 rounded-md transition-colors -mx-2">
+                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-md h-fit shadow-sm">
+                          <Award className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-indigo-800 dark:text-indigo-300">{cert.name}</div>
-                          <div className="text-[10px] text-slate-600 dark:text-slate-400">
+                          <div className="text-sm font-medium text-indigo-800 dark:text-indigo-300">{cert.name}</div>
+                          <div className="text-xs text-slate-600 dark:text-slate-400">
                             Issued by {cert.issuer} • {new Date(cert.date).toLocaleDateString()}
                           </div>
                           {cert.validUntil && (
-                            <div className="text-[10px] mt-1 flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                              <Calendar className="h-2.5 w-2.5" />
+                            <div className="text-xs mt-1 flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                              <Calendar className="h-3 w-3" />
                               Valid until {new Date(cert.validUntil).toLocaleDateString()}
                             </div>
                           )}
-                          <div className="mt-1.5 flex items-center gap-2">
+                          <div className="mt-2 flex items-center gap-2">
                             {cert.verified && (
-                              <Badge variant="outline" className="px-1.5 py-0 text-[10px] text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-900/10">
-                                <CheckCircle className="h-2 w-2 mr-1" />
+                              <Badge variant="outline" className="px-2 py-0.5 text-xs text-blue-600 dark:text-indigo-400 border-blue-200 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-900/10">
+                                <CheckCircle className="h-3 w-3 mr-1" />
                                 Verified
                               </Badge>
                             )}
                             {cert.documentUrl && (
-                              <Button variant="ghost" size="sm" className="h-6 px-2 gap-1 text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
-                                <ExternalLink className="h-2.5 w-2.5" />
+                              <Button variant="ghost" size="sm" className="h-7 px-3 gap-1 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                                <ExternalLink className="h-3 w-3" />
                                 View Document
                               </Button>
                             )}
@@ -887,7 +1224,7 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
                     ))}
                   </div>
                 ) : (
-                  <div className="py-4 text-center text-slate-500 dark:text-slate-400 text-xs">
+                  <div className="py-4 text-center text-slate-500 dark:text-slate-400 text-sm">
                     No certifications available.
                   </div>
                 )}
@@ -954,4 +1291,4 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
   );
 };
 
-export default ProfessionalSearch; 
+export default ProfessionalSearch;
