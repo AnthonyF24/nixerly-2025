@@ -1,93 +1,194 @@
-# System Design
-- **Platform:** Web-based career building and hiring tool for construction professionals.
-- **User Groups:** 
-  - **Professionals:** Create profiles, showcase certifications/portfolio, and search job listings.
-  - **Businesses/Recruiters:** Post jobs, search for talent, and contact candidates.
-- **Key Features:** 
-  - Detailed profile creation with AI-powered suggestions.
-  - Job board with advanced filters.
-  - Direct communication (WhatsApp/Email integration).
+# Nixerly Software Specifications
 
-# Architecture pattern
+## 1. Overview
+
+**Platform:**  
+Web-based career building and hiring tool for construction professionals.
+
+**User Groups:**  
+- **Professionals:** Create and manage profiles, upload portfolios/certifications, and search for job listings.  
+- **Businesses/Recruiters:** Post job opportunities, search for qualified talent, and contact professionals directly.  
+- **Administrators:** Oversee platform operations, moderate content, manage users, and review analytics.
+
+**Key Features:**  
+- Detailed profile creation with AI-powered suggestions.  
+- Job board with advanced filters and search capabilities.  
+- Direct communication via WhatsApp and email.  
+- Admin dashboard for content moderation and analytics.  
+- Integrated notifications, payment processing, and support systems.
+
+---
+
+## 2. Architecture
+
+### 2.1. Architecture Pattern
 - **Approach:** Modular, scalable, and service-oriented.
-- **Front-end:** React with Next.js for SSR and dynamic routing.
-- **Back-end:** RESTful API built on Supabase with Prisma as the ORM.
-- **Integration:** External services (Stripe for payments, Clerk for authentication).
+- **Design:** Separation of concerns with dedicated services for user management, payments, notifications, and analytics.
 
-# State management
-- **Client-side:**
-  - Utilize React hooks and Context API.
-  - Consider state libraries (e.g., Zustand or Redux) if state complexity grows.
-- **Server-side:**
-  - Token-based sessions using Clerk Auth.
-  - Real-time data updates via Supabase subscriptions.
+### 2.2. Front-end
+- **Framework:** React with Next.js for server-side rendering and dynamic routing.
+- **Styling:** Tailwind CSS and Shadcn UI components.
+- **State Management:**  
+  - Primary: React hooks and Context API.  
+  - Secondary: Evaluate Zustand or Redux as complexity increases.
+- **UI Integration:** Consumes endpoints for user data, notifications, analytics, and admin moderation.
 
-# Data flow
-- **User Actions:**
-  - Sign up/Login → Create/Edit Profile → Upload Media → Search/Post Jobs.
-- **Interactions:**
-  - Next.js pages interact with Supabase via RESTful APIs.
-  - Prisma manages data modeling and database queries.
-  - Asynchronous processing for AI-driven profile optimization.
+### 2.3. Back-end
+- **Platform:** RESTful API built on Supabase with Prisma ORM.
+- **Microservices:**  
+  - Payment processing (Stripe integration).  
+  - AI-driven profile optimization (asynchronous processing).  
+  - Notifications and analytics.
+- **Serverless Functions:** Utilized for additional microservices to ensure scalability and responsiveness.
 
-# Technical Stack
-- **Front-end:**
-  - **Framework:** React, Next.js
-  - **Styling:** Tailwind CSS, Shadcn UI components
-  - **Icons & Notifications:** Lucide Icons, Sonner Toast
-- **Back-end:**
-  - **Database & API:** Supabase
-  - **ORM:** Prisma
-  - **Hosting/Deployment:** Vercel
-  - **Authentication:** Clerk Auth
-  - **Payments:** Stripe
-- **Suggestions:**
-  - Explore serverless functions for further microservices.
-  - Consider NextAuth for additional authentication options if needed.
+---
 
-# Authentication Process
-- **User Registration:**
-  - Utilize Clerk Auth for secure email/phone-based sign-ups and social logins.
-- **Verification:**
-  - Email/phone confirmation; potential future multi-factor authentication.
-- **Session Management:**
-  - Token-based session handling using Clerk.
+## 3. Technical Stack
 
-# Route Design
-- **Public Routes:**
-  - `/` – Portfolio-driven homepage.
-  - `/signup` and `/login` – User authentication.
-- **Protected Routes (Professionals):**
-  - `/dashboard/profile` – Profile creation and editing.
-  - `/dashboard/portfolio` – Portfolio media uploads.
-  - `/dashboard/jobs` – Job board access.
-- **Protected Routes (Businesses):**
-  - `/business/dashboard` – Access to professional search and job posting.
-  - `/business/job-postings` – Manage job listings.
-- **API Routes:**
-  - `/api/profiles`, `/api/jobs`, `/api/certifications`, `/api/media`
+### 3.1. Front-end
+- **Languages/Frameworks:** React, Next.js  
+- **Styling & UI:** Tailwind CSS, Shadcn UI components  
+- **Utilities:** Lucide Icons, Sonner Toast for notifications
 
-# API Design
-- **Endpoints:**
-  - `GET /api/profiles` – Retrieve professional profiles.
+### 3.2. Back-end
+- **Database & API:** Supabase  
+- **ORM:** Prisma  
+- **Hosting/Deployment:** Vercel  
+- **Authentication:** Clerk Auth  
+- **Payments:** Stripe
+
+### 3.3. Additional Services
+- **Admin Dashboard & Moderation Tools:** Custom modules for user, content, and job posting management.
+- **Notifications Service:** Integrated with email service providers and WhatsApp for real-time alerts.
+- **Analytics:** Internal tracking and reporting systems for user engagement and performance metrics.
+
+---
+
+## 4. Authentication & Authorization
+
+### 4.1. Authentication Process
+- **Registration:**  
+  - Use Clerk Auth for secure email/phone-based sign-ups and social logins.
+  - Email/phone confirmation with potential for future multi-factor authentication (MFA).
+- **Session Management:**  
+  - Token-based sessions using Clerk.
+- **Authorization:**  
+  - Role-based access control (Professional, Business, Admin).
+  - Permissions defined to restrict access to sensitive data and administrative functions.
+
+### 4.2. Security
+- Enforce HTTPS across all endpoints.
+- Use robust validation and error handling on both client and server sides.
+- Implement data encryption for stored and transmitted data.
+
+---
+
+## 5. API Design
+
+### 5.1. Endpoints
+- **Profiles:**  
+  - `GET /api/profiles` – Retrieve professional profiles.  
   - `POST /api/profiles` – Create or update professional profiles.
-  - `GET /api/jobs` – List job postings.
+- **Jobs:**  
+  - `GET /api/jobs` – List job postings.  
   - `POST /api/jobs` – Create a new job posting.
+- **Certifications:**  
   - `GET /api/certifications` – Fetch certifications data.
+- **Media:**  
   - `POST /api/media` – Upload portfolio images and videos.
-- **Security:**
-  - Enforce HTTPS.
-  - Use Clerk tokens for authentication.
-  - Implement robust validation and error handling.
+- **Additional Endpoints:**  
+  - `/api/notifications` – Manage and send notifications.  
+  - `/api/payments` – Process payment transactions and handle billing.
+  - `/api/admin/*` – Admin-specific endpoints for user management and analytics.
 
-# Database Design ERD
-- **Entities:**
-  - **Users/Professionals:** Profile information, certifications, portfolio, availability.
-  - **Businesses:** Company profiles, job listings, contact preferences.
-  - **Jobs:** Job title, description, location, skills required, salary details.
-  - **Certifications:** Industry-standard and user-uploaded credentials.
-  - **Media Assets:** Portfolio images and video references.
-- **Relationships:**
-  - **One-to-Many:** Professionals → Certifications, Media Assets.
-  - **One-to-Many:** Businesses → Job Listings.
-  - **Many-to-Many:** Professionals ↔ Job Applications/Views.
+### 5.2. Security & Error Handling
+- Enforce HTTPS and use Clerk tokens for authentication on all API routes.
+- Implement rate limiting and robust error handling.
+- Ensure thorough validation of all API inputs.
+
+---
+
+## 6. Database Design ERD
+
+### 6.1. Entities
+- **Users/Professionals:**  
+  - Fields: Profile information, certifications, portfolio, availability.
+- **Businesses:**  
+  - Fields: Company profiles, job listings, contact preferences.
+- **Jobs:**  
+  - Fields: Job title, description, location, skills required, salary details.
+- **Certifications:**  
+  - Fields: Standard industry credentials and user-uploaded credentials.
+- **Media Assets:**  
+  - Fields: Portfolio images and video references.
+- **Admin & Support:**  
+  - Fields: Logs, reports, user moderation records.
+- **Payments:**  
+  - Fields: Transaction history, subscription details, invoices.
+- **Notifications & Analytics:**  
+  - Fields: Notification logs, engagement metrics, user activity tracking.
+
+### 6.2. Relationships
+- **One-to-Many:**  
+  - Professionals → Certifications, Media Assets.
+  - Businesses → Job Listings.
+- **Many-to-Many:**  
+  - Professionals ↔ Job Applications/Views.
+- **Additional Relationships:**  
+  - Admin actions linked to user/moderation logs.
+  - Payment records linked to user accounts and subscription plans.
+
+---
+
+## 7. Data Flow & Interactions
+
+### 7.1. User Actions
+- **General:**  
+  - Sign up/Login → Create/Edit Profile → Upload Media → Search/Post Jobs.
+- **Admin:**  
+  - Moderate content, review analytics, manage users.
+- **Payments & Notifications:**  
+  - Process transactions and send alerts for profile updates, job matches, or billing events.
+
+### 7.2. System Interactions
+- **Front-end:**  
+  - Next.js pages interact with Supabase via RESTful APIs.
+- **Back-end:**  
+  - Prisma manages data modeling and database queries.
+  - Asynchronous processing for AI-driven optimizations and notifications.
+- **Third-party Integrations:**  
+  - Stripe for payments, Clerk for authentication, and external email/notification services.
+
+---
+
+## 8. Additional Components
+
+### 8.1. Admin Dashboard & Moderation Tools
+- **Features:**  
+  - User account management (approval, banning, flagging).
+  - Content moderation for profiles, certifications, and job posts.
+  - Reporting dashboards for platform performance and user engagement.
+- **Routes:**  
+  - `/admin/dashboard` and `/admin/reports`.
+
+### 8.2. Notifications & Communication System
+- **Automated Alerts:**  
+  - Profile views, job matches, application updates, subscription/billing reminders.
+- **Channels:**  
+  - Email, in-app notifications, WhatsApp.
+- **Configuration:**  
+  - User preferences for notification frequency and channels.
+
+### 8.3. Payment & Billing System
+- **Integration:**  
+  - Stripe for secure payments.
+- **Billing Flows:**  
+  - Recurring subscriptions (monthly/annual) for business users.
+  - One-time fees for job postings.
+  - Automated invoicing and transaction history accessible via user dashboards.
+
+### 8.4. Analytics & Metrics
+- **Data Collection:**  
+  - Track user engagement (sign-ups, active sessions, conversions).
+- **Reporting:**  
+  - Dashboards for

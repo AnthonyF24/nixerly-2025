@@ -22,7 +22,6 @@ import {
   ExternalLink,
   X,
   ChevronDown,
-  MessageSquare,
   Building2,
   FileText,
   LayoutDashboard,
@@ -63,19 +62,17 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const isProfessionalVerified = isAuthenticated && userType === 'professional' && professional?.verified;
   
   const professionalNavItems = [
-    { href: "/dashboard", label: pathname === "/dashboard/messages" ? "Return to Dashboard" : "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
+    { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { href: "/dashboard/profile", label: "Profile & Portfolio", icon: <User className="w-5 h-5" /> },
     { href: "/dashboard/jobs", label: "Job Board", icon: <Briefcase className="w-5 h-5" /> },
-    { href: "/dashboard/messages", label: "Messages", icon: <MessageSquare className="w-5 h-5" /> },
     { href: "/dashboard/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
   
   const businessNavItems = [
-    { href: "/dashboard", label: pathname === "/dashboard/messages" ? "Return to Dashboard" : "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
+    { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { href: "/dashboard/profile", label: "Business Profile", icon: <Building2 className="w-5 h-5" /> },
     { href: "/dashboard/post-job", label: "Post a Job", icon: <FilePlus className="w-5 h-5" /> },
     { href: "/dashboard/find-professionals", label: "Find Professionals", icon: <Search className="w-5 h-5" /> },
-    { href: "/dashboard/messages", label: "Messages", icon: <MessageSquare className="w-5 h-5" /> },
     { href: "/dashboard/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
   
@@ -149,14 +146,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       time: "Yesterday",
       unread: true,
       type: "profile"
-    },
-    {
-      id: 3,
-      title: "New message",
-      message: "You received a message from Modern Renovations Ltd",
-      time: "2 days ago",
-      unread: false,
-      type: "message"
     }
   ];
 
@@ -451,12 +440,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             "rounded-full p-2 flex-shrink-0",
                             notification.type === 'application' 
                               ? "bg-blue-100 text-blue-600" 
-                              : notification.type === 'message' 
-                                ? "bg-green-100 text-green-600" 
-                                : "bg-purple-100 text-purple-600"
+                              : "bg-purple-100 text-purple-600"
                           )}>
                             {notification.type === 'application' && <FileText className="h-4 w-4" />}
-                            {notification.type === 'message' && <MessageSquare className="h-4 w-4" />}
                             {notification.type === 'profile' && <User className="h-4 w-4" />}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -546,7 +532,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard">
                       <LayoutDashboard className="h-4 w-4 mr-2" />
-                      {pathname === "/dashboard/messages" ? "Return to Dashboard" : "Dashboard"}
+                      Dashboard
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

@@ -464,6 +464,163 @@ export const ProfileForm = () => {
             </CardContent>
           </Card>
           
+          {/* Verification Section */}
+          <Card id="verification" className="border-t-4 border-t-green-500 hover:shadow-md transition-shadow">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                Verification
+              </CardTitle>
+              <CardDescription>
+                Get verified to increase trust and visibility with potential employers
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-start gap-4 p-4 rounded-lg bg-blue-50/50 border border-blue-100">
+                <div className="bg-blue-100 p-3 rounded-full text-blue-700">
+                  <Award className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-blue-800">Benefits of Verification</h3>
+                  <ul className="mt-2 space-y-1 text-sm text-blue-700">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Appear higher in search results</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Display a "Verified" badge on your profile</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Improve trust with potential employers</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Get more job inquiries and better opportunities</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="p-4 rounded-lg border">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-medium">Verification Status</h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {professional?.verified 
+                        ? "Your profile is verified" 
+                        : "Your profile is not yet verified"}
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    {professional?.verified ? (
+                      <Badge className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1">
+                        <CheckCircle className="h-3.5 w-3.5" />
+                        Verified
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                        Not Verified
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                
+                {!professional?.verified && (
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-500 mb-3">
+                      Get verified for a one-time fee of <span className="font-semibold">€10</span>. Verification increases your visibility to potential employers and shows that you're committed to building trust.
+                    </p>
+                    
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+                          Request Verification
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Verify Your Professional Profile</DialogTitle>
+                          <DialogDescription>
+                            Complete verification to improve your visibility and credibility
+                          </DialogDescription>
+                        </DialogHeader>
+                        
+                        <div className="py-4 space-y-4">
+                          <div className="p-4 bg-blue-50 rounded-lg">
+                            <h4 className="font-medium text-blue-800">Verification Process</h4>
+                            <ol className="mt-2 space-y-2 text-sm text-blue-700">
+                              <li className="flex items-start gap-2">
+                                <div className="bg-blue-200 text-blue-800 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">1</div>
+                                <span>Pay the one-time verification fee of €10</span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <div className="bg-blue-200 text-blue-800 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">2</div>
+                                <span>Submit copies of your certifications and ID</span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <div className="bg-blue-200 text-blue-800 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">3</div>
+                                <span>Our team will review your documents (1-2 business days)</span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <div className="bg-blue-200 text-blue-800 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">4</div>
+                                <span>Once approved, your profile will display a verification badge</span>
+                              </li>
+                            </ol>
+                          </div>
+                          
+                          <div className="grid gap-4">
+                            <div className="grid gap-2">
+                              <Label htmlFor="upload-id">Upload ID Document</Label>
+                              <div className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-slate-50 transition-colors">
+                                <Upload className="h-5 w-5 mx-auto mb-2 text-blue-500" />
+                                <p className="text-sm text-gray-500">Upload a valid government ID</p>
+                                <p className="text-xs text-gray-400 mt-1">JPG, PNG, PDF (Max 5MB)</p>
+                              </div>
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label htmlFor="upload-certs">Upload Certifications</Label>
+                              <div className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-slate-50 transition-colors">
+                                <FileText className="h-5 w-5 mx-auto mb-2 text-blue-500" />
+                                <p className="text-sm text-gray-500">Upload certification documents</p>
+                                <p className="text-xs text-gray-400 mt-1">JPG, PNG, PDF (Max 10MB)</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <DialogFooter>
+                          <DialogClose asChild>
+                            <Button variant="outline">Cancel</Button>
+                          </DialogClose>
+                          <Button
+                            onClick={() => {
+                              if (!professional) return;
+                              
+                              setProfessional({
+                                ...professional,
+                                verified: true,
+                              });
+                              
+                              // Show toast or notification
+                              alert("Your profile has been verified successfully! (In a real app, this would process payment and start the review process)");
+                            }}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            Pay €10 and Submit
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
           <Card id="certifications" className="border-t-4 border-t-blue-500 hover:shadow-md transition-shadow">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
               <CardTitle>Certifications</CardTitle>
@@ -968,6 +1125,13 @@ export const ProfileForm = () => {
           </Dialog>
 
         </div>
+
+        <Button 
+          type="submit" 
+          className="mt-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+        >
+          Save Changes
+        </Button>
       </form>
     </Form>
   );

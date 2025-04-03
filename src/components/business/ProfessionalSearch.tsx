@@ -60,13 +60,175 @@ const getImageUrl = (item: IPortfolioItem, index: number): string => {
 };
 
 export const ProfessionalSearch = () => {
-  const { professionalFilters, setProfessionalFilters } = useAppStore();
+  const { professionalFilters, setProfessionalFilters, business } = useAppStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [showMoreSkills, setShowMoreSkills] = useState(false);
   const [skillSearchQuery, setSkillSearchQuery] = useState("");
   const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
   const [pendingFilters, setPendingFilters] = useState(professionalFilters);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Check if the business has an active subscription
+  const hasActiveSubscription = business?.verified === true;
+
+  // If no subscription, show a message to subscribe
+  if (!hasActiveSubscription) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-amber-200 shadow-md bg-amber-50/50 dark:bg-amber-900/10 dark:border-amber-800/50">
+          <CardHeader className="bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 rounded-t-lg">
+            <CardTitle className="text-amber-800 dark:text-amber-400 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                <path d="M10.43 6.13L4.27 12.3a1 1 0 0 0 0 1.4l6.16 6.17c.39.39 1.02.39 1.41 0l12.02-12.02c.39-.39.39-1.02 0-1.41l-6.16-6.16a.996.996 0 0 0-1.41 0L10.43 6.13Z"></path>
+                <path d="M15.7 10.7l-3.48 3.48"></path>
+              </svg>
+              Subscription Required
+            </CardTitle>
+            <CardDescription className="text-amber-700 dark:text-amber-500">
+              Access to our professional database requires an active subscription
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6 py-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="flex flex-col">
+                <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200 mb-4">Unlock Our Database</h3>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                  Subscribe to our Business Plan for €49/month to access our complete database of construction professionals. Find the perfect match for your projects and contact them directly.
+                </p>
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 mt-4">
+                  <h4 className="font-medium text-slate-800 dark:text-slate-200 mb-2">Subscription Benefits:</h4>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mt-0.5 flex-shrink-0">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                      </svg>
+                      <span className="text-slate-700 dark:text-slate-300">Search our entire database of professionals</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mt-0.5 flex-shrink-0">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                      </svg>
+                      <span className="text-slate-700 dark:text-slate-300">View verified professional profiles</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mt-0.5 flex-shrink-0">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                      </svg>
+                      <span className="text-slate-700 dark:text-slate-300">Contact professionals directly</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mt-0.5 flex-shrink-0">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                      </svg>
+                      <span className="text-slate-700 dark:text-slate-300">Post unlimited job listings</span>
+                    </li>
+                  </ul>
+                </div>
+                <Button 
+                  asChild
+                  className="mt-6 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all"
+                >
+                  <Link href="/dashboard/profile#subscription">
+                    Subscribe Now - €49/month
+                  </Link>
+                </Button>
+              </div>
+              
+              <div className="hidden lg:block">
+                <div className="relative overflow-hidden rounded-lg w-full h-full min-h-[300px] bg-indigo-100 dark:bg-indigo-900/20">
+                  <div className="absolute inset-0 opacity-10 bg-gradient-to-br from-indigo-600 to-purple-600"></div>
+                  <div className="p-8 relative z-10 flex flex-col items-center justify-center h-full">
+                    <div className="w-24 h-24 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-lg mb-6">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600 dark:text-indigo-400">
+                        <path d="M18.1 9.2a4.8 4.8 0 1 0-6.8-6.8l-1.3 1.3 6.8 6.8 1.3-1.3z"></path>
+                        <path d="M11.5 3.2 3.2 11.5c-.8.8-.8 2 0 2.8L8.7 20c.8.7 2 .7 2.8 0l8.3-8.3"></path>
+                        <path d="m15 9 3 3"></path>
+                      </svg>
+                    </div>
+                    <h4 className="text-xl font-medium text-indigo-800 dark:text-indigo-300 mb-2 text-center">Find the Perfect Match</h4>
+                    <p className="text-indigo-700 dark:text-indigo-400 text-center">
+                      Our database includes hundreds of qualified professionals across various construction trades
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Show a restricted preview of professionals */}
+        <div className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 p-4 rounded-xl">
+          <h2 className="text-lg font-medium text-slate-800 dark:text-slate-200 mb-4 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-slate-500">
+              <circle cx="18" cy="15" r="3"></circle>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M10 15H6a4 4 0 0 0-4 4v2"></path>
+              <path d="m21.7 16.4-.9-.3"></path>
+              <path d="m15.2 13.9-.9-.3"></path>
+              <path d="m16.6 18.7.3-.9"></path>
+              <path d="m19.1 12.2.3-.9"></path>
+            </svg>
+            Sample Professionals (Subscribe to See More)
+          </h2>
+          <div className="grid grid-cols-1 gap-5 opacity-70">
+            {dummyProfessionals.slice(0, 2).map(professional => (
+              <div key={professional.id} className="border rounded-lg p-4 bg-white dark:bg-slate-900 relative overflow-hidden">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-16 w-16 border-2 border-slate-200 dark:border-slate-700">
+                    <AvatarFallback>{professional.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="font-medium text-lg text-slate-800 dark:text-slate-200">{professional.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      {professional.location && (
+                        <span className="text-sm text-slate-500 dark:text-slate-400 flex items-center">
+                          <MapPin className="h-3.5 w-3.5 mr-1 text-slate-400" />
+                          {professional.location}
+                        </span>
+                      )}
+                      {professional.verified && (
+                        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 px-1.5 py-0 text-xs">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Verified
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center">
+                  <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg max-w-md text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500 mx-auto mb-3">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200 mb-2">
+                      Access Restricted
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400 mb-4">
+                      Subscribe to view full professional profiles and contact information.
+                    </p>
+                    <Button 
+                      asChild
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white transition-all"
+                    >
+                      <Link href="/dashboard/profile#subscription">
+                        Subscribe Now
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   // Apply filters to professionals
   const filteredProfessionals = dummyProfessionals.filter(professional => {
