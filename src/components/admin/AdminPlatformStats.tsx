@@ -217,7 +217,7 @@ const AdminPlatformStats = () => {
       case "businesses":
         return "Business Accounts";
       case "revenue":
-        return "Revenue ($)";
+        return "Revenue (€)";
       case "sessions":
         return "Platform Sessions";
       default:
@@ -289,8 +289,8 @@ const AdminPlatformStats = () => {
               <div className="text-center">
                 <div className="text-sm font-medium text-muted-foreground">Total</div>
                 <div className="text-xl font-bold mt-1">
-                  {activeTab === "revenue" ? "$" : ""}
-                  {mockChartData[activeTab as keyof typeof mockChartData][11].toLocaleString()}
+                  {activeTab === "revenue" ? "€" : ""}
+                  {mockChartData[activeTab as keyof typeof mockChartData][11].toLocaleString('en-IE')}
                 </div>
               </div>
             </div>
@@ -299,9 +299,9 @@ const AdminPlatformStats = () => {
               <div className="text-center">
                 <div className="text-sm font-medium text-muted-foreground">Average</div>
                 <div className="text-xl font-bold mt-1">
-                  {activeTab === "revenue" ? "$" : ""}
+                  {activeTab === "revenue" ? "€" : ""}
                   {Math.round(mockChartData[activeTab as keyof typeof mockChartData]
-                    .reduce((sum, val) => sum + val, 0) / 12).toLocaleString()}
+                    .reduce((sum, val) => sum + val, 0) / 12).toLocaleString('en-IE')}
                 </div>
               </div>
             </div>
@@ -310,8 +310,8 @@ const AdminPlatformStats = () => {
               <div className="text-center">
                 <div className="text-sm font-medium text-muted-foreground">Highest</div>
                 <div className="text-xl font-bold mt-1">
-                  {activeTab === "revenue" ? "$" : ""}
-                  {Math.max(...mockChartData[activeTab as keyof typeof mockChartData]).toLocaleString()}
+                  {activeTab === "revenue" ? "€" : ""}
+                  {Math.max(...mockChartData[activeTab as keyof typeof mockChartData]).toLocaleString('en-IE')}
                 </div>
               </div>
             </div>

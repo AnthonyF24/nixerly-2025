@@ -100,7 +100,7 @@ const AdminRevenueChart = () => {
       for (let i = 0; i <= 5; i++) {
         const value = Math.round(maxValue * i / 5);
         const y = padding + chartHeight - (i * chartHeight / 5);
-        ctx.fillText('$' + value.toLocaleString(), padding - 10, y + 5);
+        ctx.fillText('€' + value.toLocaleString('en-IE'), padding - 10, y + 5);
       }
       
       // Draw stacked bar chart
@@ -141,7 +141,7 @@ const AdminRevenueChart = () => {
         
         // Only add totals on even months to avoid overcrowding
         if (monthIndex % 2 === 0) {
-          ctx.fillText('$' + totalRevenue.toLocaleString(), centerX, y - 10);
+          ctx.fillText('€' + totalRevenue.toLocaleString('en-IE'), centerX, y - 10);
         }
       });
       
@@ -218,7 +218,7 @@ const AdminRevenueChart = () => {
         {revenueBreakdown.map(({ source, total, percentage }) => (
           <div key={source} className="flex flex-col rounded-md border p-3">
             <div className="text-sm text-muted-foreground mb-1 capitalize">{source}</div>
-            <div className="text-2xl font-bold">${total.toLocaleString()}</div>
+            <div className="text-2xl font-bold">€{total.toLocaleString('en-IE')}</div>
             <div className="mt-1 flex items-center">
               <Badge variant="outline" className="text-xs bg-muted/50">
                 {percentage}% of revenue
@@ -235,11 +235,11 @@ const AdminRevenueChart = () => {
       <div className="flex justify-between items-center p-3 rounded-md bg-blue-50 border border-blue-100">
         <div className="text-blue-800">
           <div className="text-sm font-medium">Total annual revenue</div>
-          <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
+          <div className="text-2xl font-bold">€{totalRevenue.toLocaleString('en-IE')}</div>
         </div>
         <div className="text-blue-800">
           <div className="text-sm font-medium">Monthly average</div>
-          <div className="text-2xl font-bold">${(totalRevenue / 12).toFixed(0).toLocaleString()}</div>
+          <div className="text-2xl font-bold">€{(totalRevenue / 12).toFixed(0).toLocaleString('en-IE')}</div>
         </div>
         <div className="text-blue-800">
           <div className="text-sm font-medium">Year-over-year growth</div>
