@@ -42,6 +42,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogClose, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
+import { useRouter } from "next/navigation";
 
 // Sample placeholder images for portfolio demonstration
 const PLACEHOLDER_IMAGES = [
@@ -79,6 +80,8 @@ export const ProfessionalSearch = () => {
   // Check if the business has an active subscription
   const hasActiveSubscription = business?.verified === true;
 
+  const displayedSkills = showMoreSkills ? skillsList : skillsList.slice(0, 10);
+  
   // If no subscription, show a message to subscribe
   if (!hasActiveSubscription) {
     return (
@@ -365,8 +368,6 @@ export const ProfessionalSearch = () => {
     });
     setSearchQuery("");
   };
-  
-  const displayedSkills = showMoreSkills ? skillsList : skillsList.slice(0, 10);
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-screen-2xl mx-auto bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 p-4 rounded-xl">
@@ -827,6 +828,7 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImageIndex, setModalImageIndex] = useState(0);
+  const router = useRouter();
   
   const portfolioItems = professional.portfolio || [];
   const hasPortfolio = portfolioItems.length > 0;
@@ -882,6 +884,19 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
     } else if (e.key === 'Escape') {
       setModalOpen(false);
     }
+  };
+
+  const handleViewProfile = () => {
+    // Map between dummy data IDs and the profile page IDs
+    const idMapping: Record<string, string> = {
+      'p1': 'prof-001',
+      'p2': 'prof-002',
+      'p3': 'prof-003'
+    };
+    
+    // Use the mapped ID if available, otherwise use the original ID
+    const profileId = idMapping[professional.id] || professional.id;
+    router.push(`/professionals/${profileId}`);
   };
 
   return (
@@ -963,13 +978,13 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
                 </p>
                 
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  {professional.skills.slice(0, 5).map(skill => (
+                  {professional.skills?.slice(0, 5).map(skill => (
                     <Badge key={skill} variant="secondary" className="text-xs py-0.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 transition-colors">
                       {skill}
                     </Badge>
                   ))}
                   
-                  {professional.skills.length > 5 && (
+                  {professional.skills && professional.skills.length > 5 && (
                     <Badge variant="outline" className="text-xs py-0.5 px-2 border-indigo-200 dark:border-indigo-800/50 text-indigo-600 dark:text-indigo-400">
                       +{professional.skills.length - 5} more
                     </Badge>
@@ -994,6 +1009,14 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
                     variant="outline"
                     size="sm"
                     className="rounded-full px-4 text-sm font-medium text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/50 hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-300 transition-colors shadow-sm"
+                    onClick={handleViewProfile}
+                    aria-label={`View ${professional.name}'s profile`}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        handleViewProfile();
+                      }
+                    }}
                   >
                     View Profile
                   </Button>
@@ -1059,8 +1082,8 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
                   <div>
                     <h4 className="text-xs uppercase font-medium tracking-wide text-indigo-500 dark:text-indigo-400 mb-2 border-b border-indigo-100 dark:border-indigo-900/30 pb-1">Skills</h4>
                     <div className="flex flex-wrap gap-1.5">
-                      {professional.skills.map(skill => (
-                        <Badge key={skill} variant="secondary" className="text-xs py-0.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 transition-colors">
+                      {professional.skills?.map(skill => (
+                        <Badge key={skill} variant="secondary" className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 transition-colors">
                           {skill}
                         </Badge>
                       ))}
