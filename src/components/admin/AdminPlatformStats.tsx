@@ -60,6 +60,36 @@ const AdminPlatformStats = () => {
   const [timeRange, setTimeRange] = useState("year");
   const [activeTab, setActiveTab] = useState("users");
   
+  // Function to get filtered data based on time range
+  const getFilteredData = (data: number[]) => {
+    switch (timeRange) {
+      case "month":
+        return data.slice(-1); // Last month only
+      case "quarter":
+        return data.slice(-3); // Last 3 months
+      case "all":
+        return data; // All data
+      case "year":
+      default:
+        return data; // Last 12 months (default)
+    }
+  };
+  
+  // Function to get filtered labels based on time range
+  const getFilteredLabels = () => {
+    switch (timeRange) {
+      case "month":
+        return monthLabels.slice(-1); // Last month only
+      case "quarter":
+        return monthLabels.slice(-3); // Last 3 months
+      case "all":
+        return monthLabels; // All months
+      case "year":
+      default:
+        return monthLabels; // Last 12 months (default)
+    }
+  };
+
   // Function to draw the chart
   const drawChart = (ctx: HTMLCanvasElement) => {
     if (!ctx) return;
@@ -69,7 +99,7 @@ const AdminPlatformStats = () => {
     
     const width = ctx.width;
     const height = ctx.height;
-    const padding = 40;
+    const padding = 60; // Increased padding for more space
     const chartWidth = width - padding * 2;
     const chartHeight = height - padding * 2;
     
@@ -89,8 +119,11 @@ const AdminPlatformStats = () => {
       canvas.stroke();
     }
     
-    // Get data for the current tab
-    const data = mockChartData[activeTab as keyof typeof mockChartData];
+    // Get data for the current tab and filter by time range
+    const fullData = mockChartData[activeTab as keyof typeof mockChartData];
+    const data = getFilteredData(fullData);
+    const labels = getFilteredLabels();
+    
     const maxValue = Math.max(...data) * 1.1; // Add 10% headroom
     
     // Draw axes
@@ -109,7 +142,7 @@ const AdminPlatformStats = () => {
     
     // Draw data points and line
     data.forEach((value, index) => {
-      const x = padding + index * (chartWidth / (data.length - 1));
+      const x = padding + index * (chartWidth / (data.length - 1 || 1)); // Prevent division by zero
       const y = padding + chartHeight - (value / maxValue * chartHeight);
       
       if (index === 0) {
@@ -124,7 +157,7 @@ const AdminPlatformStats = () => {
     canvas.fillStyle = 'rgba(59, 130, 246, 0.1)';
     canvas.beginPath();
     data.forEach((value, index) => {
-      const x = padding + index * (chartWidth / (data.length - 1));
+      const x = padding + index * (chartWidth / (data.length - 1 || 1)); // Prevent division by zero
       const y = padding + chartHeight - (value / maxValue * chartHeight);
       
       if (index === 0) {
@@ -144,7 +177,7 @@ const AdminPlatformStats = () => {
     canvas.lineWidth = 2;
     
     data.forEach((value, index) => {
-      const x = padding + index * (chartWidth / (data.length - 1));
+      const x = padding + index * (chartWidth / (data.length - 1 || 1)); // Prevent division by zero
       const y = padding + chartHeight - (value / maxValue * chartHeight);
       
       canvas.beginPath();
@@ -158,8 +191,8 @@ const AdminPlatformStats = () => {
     canvas.font = '12px sans-serif';
     canvas.textAlign = 'center';
     
-    monthLabels.forEach((month, index) => {
-      const x = padding + index * (chartWidth / (monthLabels.length - 1));
+    labels.forEach((month, index) => {
+      const x = padding + index * (chartWidth / (labels.length - 1 || 1)); // Prevent division by zero
       const y = padding + chartHeight + 20;
       canvas.fillText(month, x, y);
     });
@@ -178,11 +211,11 @@ const AdminPlatformStats = () => {
     canvas.textAlign = 'center';
     
     data.forEach((value, index) => {
-      const x = padding + index * (chartWidth / (data.length - 1));
+      const x = padding + index * (chartWidth / (data.length - 1 || 1)); // Prevent division by zero
       const y = padding + chartHeight - (value / maxValue * chartHeight);
       
-      // Only show alternate values to avoid crowding
-      if (index % 2 === 0) {
+      // Only show alternate values to avoid crowding or all if only a few points
+      if (data.length <= 3 || index % 2 === 0) {
         canvas.fillText(value.toLocaleString(), x, y - 15);
       }
     });
@@ -190,17 +223,50 @@ const AdminPlatformStats = () => {
   
   React.useEffect(() => {
     const ctx = document.getElementById('statsChart') as HTMLCanvasElement;
-    if (ctx) {
-      drawChart(ctx);
+    if (!ctx) return;
+    
+    // Set canvas dimensions to match container size
+    const resizeCanvas = () => {
+      const container = ctx.parentElement;
+      if (container) {
+        ctx.width = container.clientWidth;
+        ctx.height = container.clientHeight;
+        drawChart(ctx);
+      }
+    };
+    
+    // Initial sizing
+    resizeCanvas();
+    
+    // Setup resize observer
+    const resizeObserver = new ResizeObserver(() => {
+      resizeCanvas();
+    });
+    
+    if (ctx.parentElement) {
+      resizeObserver.observe(ctx.parentElement);
     }
+    
+    // Clean up on unmount
+    return () => {
+      if (ctx.parentElement) {
+        resizeObserver.unobserve(ctx.parentElement);
+      }
+      resizeObserver.disconnect();
+    };
   }, [activeTab, timeRange]);
 
   // Format the percentage change
   const getPercentageChange = () => {
-    const data = mockChartData[activeTab as keyof typeof mockChartData];
-    const lastMonth = data[data.length - 1];
-    const previousMonth = data[data.length - 2];
-    const percentChange = ((lastMonth - previousMonth) / previousMonth) * 100;
+    // Get appropriate data based on time range
+    const fullData = mockChartData[activeTab as keyof typeof mockChartData];
+    const data = getFilteredData(fullData);
+    
+    if (data.length < 2) return "0.0"; // Prevent errors if not enough data
+    
+    const lastValue = data[data.length - 1];
+    const previousValue = data[data.length - 2];
+    const percentChange = ((lastValue - previousValue) / previousValue) * 100;
     
     return percentChange.toFixed(1);
   };
@@ -229,23 +295,27 @@ const AdminPlatformStats = () => {
   const isPositive = parseFloat(percentChange) >= 0;
   
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:max-w-md">
-          <TabsList className="grid grid-cols-2 sm:grid-cols-3 w-full">
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="jobs">Jobs</TabsTrigger>
-            <TabsTrigger value="professionals">Professionals</TabsTrigger>
-            <TabsTrigger value="businesses">Businesses</TabsTrigger>
-            <TabsTrigger value="revenue">Revenue</TabsTrigger>
-            <TabsTrigger value="sessions">Sessions</TabsTrigger>
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-10">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="flex flex-wrap w-full gap-1">
+            <TabsTrigger value="users" className="flex-1 min-w-[80px]">Users</TabsTrigger>
+            <TabsTrigger value="jobs" className="flex-1 min-w-[80px]">Jobs</TabsTrigger>
+            <TabsTrigger value="professionals" className="flex-1 min-w-[120px]">Professionals</TabsTrigger>
+            <TabsTrigger value="businesses" className="flex-1 min-w-[120px]">Businesses</TabsTrigger>
+            <TabsTrigger value="revenue" className="flex-1 min-w-[80px]">Revenue</TabsTrigger>
+            <TabsTrigger value="sessions" className="flex-1 min-w-[80px]">Sessions</TabsTrigger>
           </TabsList>
         </Tabs>
         
         <div className="flex items-center gap-2">
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Time Range" />
+              <SelectValue>
+                {timeRange === "month" ? "Last Month" : 
+                 timeRange === "quarter" ? "Last Quarter" : 
+                 timeRange === "year" ? "Last Year" : "All Time"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="month">Last Month</SelectItem>
@@ -290,7 +360,8 @@ const AdminPlatformStats = () => {
                 <div className="text-sm font-medium text-muted-foreground">Total</div>
                 <div className="text-xl font-bold mt-1">
                   {activeTab === "revenue" ? "€" : ""}
-                  {mockChartData[activeTab as keyof typeof mockChartData][11].toLocaleString('en-IE')}
+                  {getFilteredData(mockChartData[activeTab as keyof typeof mockChartData])
+                    .slice(-1)[0].toLocaleString('en-IE')}
                 </div>
               </div>
             </div>
@@ -300,8 +371,10 @@ const AdminPlatformStats = () => {
                 <div className="text-sm font-medium text-muted-foreground">Average</div>
                 <div className="text-xl font-bold mt-1">
                   {activeTab === "revenue" ? "€" : ""}
-                  {Math.round(mockChartData[activeTab as keyof typeof mockChartData]
-                    .reduce((sum, val) => sum + val, 0) / 12).toLocaleString('en-IE')}
+                  {Math.round(getFilteredData(mockChartData[activeTab as keyof typeof mockChartData])
+                    .reduce((sum, val) => sum + val, 0) / 
+                    getFilteredData(mockChartData[activeTab as keyof typeof mockChartData]).length)
+                    .toLocaleString('en-IE')}
                 </div>
               </div>
             </div>
@@ -311,7 +384,8 @@ const AdminPlatformStats = () => {
                 <div className="text-sm font-medium text-muted-foreground">Highest</div>
                 <div className="text-xl font-bold mt-1">
                   {activeTab === "revenue" ? "€" : ""}
-                  {Math.max(...mockChartData[activeTab as keyof typeof mockChartData]).toLocaleString('en-IE')}
+                  {Math.max(...getFilteredData(mockChartData[activeTab as keyof typeof mockChartData]))
+                    .toLocaleString('en-IE')}
                 </div>
               </div>
             </div>
@@ -320,9 +394,14 @@ const AdminPlatformStats = () => {
               <div className="text-center">
                 <div className="text-sm font-medium text-muted-foreground">Growth Rate</div>
                 <div className="text-xl font-bold mt-1">
-                  {(((mockChartData[activeTab as keyof typeof mockChartData][11] - 
-                     mockChartData[activeTab as keyof typeof mockChartData][0]) / 
-                     mockChartData[activeTab as keyof typeof mockChartData][0]) * 100).toFixed(1)}%
+                  {(() => {
+                    const filteredData = getFilteredData(mockChartData[activeTab as keyof typeof mockChartData]);
+                    if (filteredData.length < 2) return "N/A";
+                    
+                    return (((filteredData[filteredData.length - 1] - 
+                             filteredData[0]) / 
+                             filteredData[0]) * 100).toFixed(1) + "%";
+                  })()}
                 </div>
               </div>
             </div>

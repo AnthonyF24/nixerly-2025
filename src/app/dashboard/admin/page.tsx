@@ -207,11 +207,13 @@ const AdminDashboardPage = () => {
             <CardHeader className="pb-2">
               <CardTitle>Revenue Overview</CardTitle>
               <CardDescription>
-                Revenue trends over the past 12 months
+                Monthly revenue data by selected year
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <AdminRevenueChart />
+            <CardContent className="pb-6">
+              <div className="min-h-[400px]">
+                <AdminRevenueChart />
+              </div>
             </CardContent>
           </Card>
           

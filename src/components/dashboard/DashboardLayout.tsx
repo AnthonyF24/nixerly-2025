@@ -128,7 +128,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { href: "/dashboard/admin/jobs", label: "Manage Jobs", icon: <Briefcase className="w-5 h-5" /> },
     { href: "/dashboard/admin/businesses", label: "Manage Businesses", icon: <Building2 className="w-5 h-5" /> },
     { href: "/dashboard/admin/professionals", label: "Manage Professionals", icon: <Activity className="w-5 h-5" /> },
-    { href: "/dashboard", label: "Back to Dashboard", icon: <ExternalLink className="w-5 h-5" /> },
   ];
   
   // Public navigation links (for non-authenticated users)

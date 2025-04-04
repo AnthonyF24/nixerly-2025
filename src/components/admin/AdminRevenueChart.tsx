@@ -32,23 +32,54 @@ const revenueData = generateRevenueData();
 
 const AdminRevenueChart = () => {
   const [year, setYear] = React.useState("2024");
+  const chartInitialized = React.useRef(false);
   
   useEffect(() => {
+    // Skip if chart already initialized and year hasn't changed
+    if (chartInitialized.current && !year) return;
+    
     const canvas = document.getElementById('revenueChart') as HTMLCanvasElement;
-    if (!canvas) return;
+    if (!canvas) {
+      console.error("Revenue chart canvas not found");
+      return;
+    }
     
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      console.error("Could not get canvas context");
+      return;
+    }
     
+    // Log canvas dimensions for debugging
+    console.log("Canvas dimensions:", canvas.width, canvas.height);
+    
+    // Make sure the canvas has the correct dimensions initially
+    canvas.width = canvas.parentElement?.clientWidth || 800;
+    canvas.height = canvas.parentElement?.clientHeight || 320;
+    
+    // Log updated dimensions
+    console.log("Updated canvas dimensions:", canvas.width, canvas.height);
+    
+    // Define the chart drawing function first
     const drawChart = () => {
+      // Reset context with new dimensions
       const width = canvas.width;
       const height = canvas.height;
-      const padding = 40;
+      ctx.clearRect(0, 0, width, height);
+      
+      // Basic dimensions
+      const padding = 60;
       const chartWidth = width - padding * 2;
       const chartHeight = height - padding * 2;
       
-      // Clear canvas
-      ctx.clearRect(0, 0, width, height);
+      if (chartWidth <= 0 || chartHeight <= 0) {
+        console.error("Chart dimensions too small:", chartWidth, chartHeight);
+        return;
+      }
+      
+      // Background
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(0, 0, width, height);
       
       // Define colors for revenue sources
       const colors = {
@@ -58,21 +89,8 @@ const AdminRevenueChart = () => {
         verifications: { fill: 'rgba(16, 185, 129, 0.7)', stroke: '#10b981' },
       };
       
-      // Find max value for scaling
-      const maxValue = Math.max(...revenueData.totals) * 1.1; // Add 10% headroom
-      
-      // Draw grid lines
-      ctx.strokeStyle = '#e5e7eb';
-      ctx.lineWidth = 1;
-      
-      // Horizontal grid lines
-      for (let i = 0; i <= 5; i++) {
-        const y = padding + (chartHeight - (i * chartHeight / 5));
-        ctx.beginPath();
-        ctx.moveTo(padding, y);
-        ctx.lineTo(padding + chartWidth, y);
-        ctx.stroke();
-      }
+      // Max value for scaling
+      const maxValue = Math.max(...revenueData.totals) * 1.2;
       
       // Draw axes
       ctx.strokeStyle = '#94a3b8';
@@ -83,108 +101,124 @@ const AdminRevenueChart = () => {
       ctx.lineTo(padding + chartWidth, padding + chartHeight);
       ctx.stroke();
       
-      // Draw x-axis labels (months)
-      ctx.fillStyle = '#64748b';
-      ctx.font = '12px sans-serif';
-      ctx.textAlign = 'center';
+      // Draw bars
+      const barWidth = Math.min(30, chartWidth / revenueData.months.length / 1.5);
       
       revenueData.months.forEach((month, index) => {
-        const x = padding + index * (chartWidth / (revenueData.months.length - 1));
-        const y = padding + chartHeight + 20;
-        ctx.fillText(month, x, y);
-      });
-      
-      // Draw y-axis labels (revenue values)
-      ctx.textAlign = 'right';
-      
-      for (let i = 0; i <= 5; i++) {
-        const value = Math.round(maxValue * i / 5);
-        const y = padding + chartHeight - (i * chartHeight / 5);
-        ctx.fillText('€' + value.toLocaleString('en-IE'), padding - 10, y + 5);
-      }
-      
-      // Draw stacked bar chart
-      const barWidth = chartWidth / revenueData.months.length / 1.5; // Slightly narrower than spacing
-      
-      revenueData.months.forEach((_, monthIndex) => {
-        let y = padding + chartHeight; // Start from the bottom
-        const centerX = padding + monthIndex * (chartWidth / (revenueData.months.length - 1));
-        const x = centerX - barWidth / 2;
+        // Skip if calculations would cause errors
+        if (revenueData.months.length <= 1) return;
         
-        // Draw each revenue source as a segment of the bar
+        // X position
+        const x = padding + (index * chartWidth / (revenueData.months.length - 1));
+        
+        // Draw month label
+        ctx.fillStyle = '#64748b';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(month, x, padding + chartHeight + 20);
+        
+        // Draw bar
+        const totalHeight = (revenueData.totals[index] / maxValue) * chartHeight;
+        const barX = x - barWidth/2;
+        let barY = padding + chartHeight;
+        
+        // Draw bar segments for each revenue source
         Object.entries(revenueData.data).forEach(([source, values]) => {
-          const value = values[monthIndex];
-          const height = (value / maxValue) * chartHeight;
+          const value = values[index];
+          const segmentHeight = (value / maxValue) * chartHeight;
           
-          // Source-specific color
           const color = colors[source as keyof typeof colors];
           
-          // Draw bar segment
+          // Draw segment
           ctx.fillStyle = color.fill;
           ctx.strokeStyle = color.stroke;
           ctx.lineWidth = 1;
           
           ctx.beginPath();
-          ctx.rect(x, y - height, barWidth, height);
+          ctx.rect(barX, barY - segmentHeight, barWidth, segmentHeight);
           ctx.fill();
           ctx.stroke();
           
-          // Move up for the next segment
-          y -= height;
+          barY -= segmentHeight;
         });
         
-        // Add total revenue text at the top of each bar
-        const totalRevenue = revenueData.totals[monthIndex];
-        ctx.fillStyle = '#334155';
-        ctx.textAlign = 'center';
-        ctx.font = 'bold 12px sans-serif';
-        
-        // Only add totals on even months to avoid overcrowding
-        if (monthIndex % 2 === 0) {
-          ctx.fillText('€' + totalRevenue.toLocaleString('en-IE'), centerX, y - 10);
+        // Add value on top
+        if (index % 2 === 0) {
+          ctx.fillStyle = '#334155';
+          ctx.textAlign = 'center';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.fillText('€' + revenueData.totals[index].toLocaleString('en-IE'), x, barY - 8);
         }
       });
       
       // Draw legend
-      let legendY = 20;
-      let legendX = width - 200;
-      const legendItemWidth = 120;
-      const legendItemHeight = 20;
+      ctx.textAlign = 'left';
+      ctx.font = '12px sans-serif';
+      let legendY = padding/2;
       
-      Object.entries(colors).forEach(([source, color], index) => {
-        // Draw colored rectangle
+      Object.entries(colors).forEach(([source, color], i) => {
+        const legendX = padding + 20 + (i * 150);
+        
+        // Draw color swatch
         ctx.fillStyle = color.fill;
         ctx.strokeStyle = color.stroke;
-        ctx.lineWidth = 1;
-        
         ctx.beginPath();
-        ctx.rect(legendX, legendY, 16, 16);
+        ctx.rect(legendX, legendY, 12, 12);
         ctx.fill();
         ctx.stroke();
         
-        // Draw source label
+        // Draw label
         ctx.fillStyle = '#334155';
-        ctx.textAlign = 'left';
-        ctx.font = '12px sans-serif';
-        ctx.fillText(source.charAt(0).toUpperCase() + source.slice(1), legendX + 22, legendY + 12);
-        
-        // Move to next legend item
-        legendX += legendItemWidth;
-        
-        // Wrap to next line if needed
-        if ((index + 1) % 2 === 0) {
-          legendX = width - 200;
-          legendY += legendItemHeight;
-        }
+        ctx.fillText(source.charAt(0).toUpperCase() + source.slice(1), legendX + 20, legendY + 10);
       });
     };
+    
+    // Set canvas dimensions to match container size
+    const resizeCanvas = () => {
+      const container = canvas.parentElement;
+      if (container) {
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+        drawChart();
+      }
+    };
+    
+    // Initial resize
+    resizeCanvas();
+    
+    // Setup resize observer
+    const resizeObserver = new ResizeObserver(() => {
+      resizeCanvas();
+    });
+    
+    if (canvas.parentElement) {
+      resizeObserver.observe(canvas.parentElement);
+    }
+    
+    // Make sure chart is visible in the DOM
+    setTimeout(() => {
+      resizeCanvas();
+    }, 100);
     
     // Call the drawing function
     drawChart();
     
+    // Mark chart as initialized
+    chartInitialized.current = true;
+    
     // Clean up on unmount
     return () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Only cleanup if canvas and context still exist
+      if (canvas && canvas.parentElement) {
+        try {
+          resizeObserver.unobserve(canvas.parentElement);
+          resizeObserver.disconnect();
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          console.log("Chart cleanup successful");
+        } catch (error) {
+          console.error("Error during chart cleanup:", error);
+        }
+      }
     };
   }, [year]);
   
@@ -201,10 +235,10 @@ const AdminRevenueChart = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Revenue Breakdown</h3>
+        <h3 className="text-lg font-semibold">Revenue Breakdown ({year})</h3>
         <Select value={year} onValueChange={setYear}>
           <SelectTrigger className="w-[100px]">
-            <SelectValue placeholder="Year" />
+            <SelectValue>{year}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="2022">2022</SelectItem>
@@ -214,11 +248,11 @@ const AdminRevenueChart = () => {
         </Select>
       </div>
       
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {revenueBreakdown.map(({ source, total, percentage }) => (
           <div key={source} className="flex flex-col rounded-md border p-3">
             <div className="text-sm text-muted-foreground mb-1 capitalize">{source}</div>
-            <div className="text-2xl font-bold">€{total.toLocaleString('en-IE')}</div>
+            <div className="text-xl md:text-2xl font-bold">€{total.toLocaleString('en-IE')}</div>
             <div className="mt-1 flex items-center">
               <Badge variant="outline" className="text-xs bg-muted/50">
                 {percentage}% of revenue
@@ -228,22 +262,22 @@ const AdminRevenueChart = () => {
         ))}
       </div>
       
-      <div className="h-72 w-full">
-        <canvas id="revenueChart" width="800" height="288" className="w-full h-full"></canvas>
+      <div className="w-full h-[300px] md:h-[350px] relative bg-white border border-gray-100 rounded-md p-2">
+        <canvas id="revenueChart" className="w-full h-full block"></canvas>
       </div>
       
-      <div className="flex justify-between items-center p-3 rounded-md bg-blue-50 border border-blue-100">
-        <div className="text-blue-800">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 rounded-md bg-blue-50 border border-blue-100">
+        <div className="text-blue-800 text-center sm:text-left w-full sm:w-auto">
           <div className="text-sm font-medium">Total annual revenue</div>
-          <div className="text-2xl font-bold">€{totalRevenue.toLocaleString('en-IE')}</div>
+          <div className="text-xl md:text-2xl font-bold">€{totalRevenue.toLocaleString('en-IE')}</div>
         </div>
-        <div className="text-blue-800">
+        <div className="text-blue-800 text-center sm:text-left w-full sm:w-auto">
           <div className="text-sm font-medium">Monthly average</div>
-          <div className="text-2xl font-bold">€{(totalRevenue / 12).toFixed(0).toLocaleString('en-IE')}</div>
+          <div className="text-xl md:text-2xl font-bold">€{(totalRevenue / 12).toFixed(0).toLocaleString('en-IE')}</div>
         </div>
-        <div className="text-blue-800">
+        <div className="text-blue-800 text-center sm:text-left w-full sm:w-auto">
           <div className="text-sm font-medium">Year-over-year growth</div>
-          <div className="text-2xl font-bold">+24.8%</div>
+          <div className="text-xl md:text-2xl font-bold">+24.8%</div>
         </div>
       </div>
     </div>
