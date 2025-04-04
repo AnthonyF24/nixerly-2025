@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileEdit, Archive, Plus, CheckCircle, Trash2, RefreshCw, X, BriefcaseBusiness, Sparkles } from "lucide-react";
+import { FileEdit, Archive, Plus, CheckCircle, Trash2, RefreshCw, X, BriefcaseBusiness, Sparkles, Euro, Clock, MapPin } from "lucide-react";
 import { IJob } from "@/lib/store";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Link from "next/link";
@@ -34,6 +34,12 @@ const PostJobPage = () => {
     setIsAuthenticated(true);
     setBusiness(dummyBusinesses[0]);
     setUserType("business");
+    
+    // Initialize jobs from dummyJobs
+    import("@/lib/dummy-data").then(({ dummyJobs }) => {
+      // Update the Zustand store directly by replacing the jobs array
+      useAppStore.setState({ jobs: dummyJobs });
+    });
   }, [setBusiness, setUserType, setIsAuthenticated]);
   
   const handleSuccess = () => {

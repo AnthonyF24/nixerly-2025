@@ -17,7 +17,6 @@ import {
   MapPin, 
   Search, 
   Filter, 
-  Star, 
   UserCheck, 
   X, 
   ChevronDown, 
@@ -241,34 +240,36 @@ export const ProfessionalSearch = () => {
   
   // Apply filters to professionals
   const filteredProfessionals = dummyProfessionals.filter(professional => {
+    // Ensure professionalFilters is defined before accessing its properties
+    if (!professionalFilters) return true;
+    
     // Filter by availability
-    if (professionalFilters.availability !== null && professional.availability !== professionalFilters.availability) {
+    if (professionalFilters.availability !== null && 
+        professional.availability !== professionalFilters.availability) {
       return false;
     }
     
     // Filter by verification status
-    if (professionalFilters.verified !== null && professional.verified !== professionalFilters.verified) {
+    if (professionalFilters.verified !== null && 
+        professional.verified !== professionalFilters.verified) {
       return false;
     }
     
     // Filter by location
-    if (professionalFilters.location && professional.location !== professionalFilters.location) {
+    if (professionalFilters.location && 
+        professional.location !== professionalFilters.location) {
       return false;
     }
     
     // Filter by skills - check if ANY of the selected skills matches (OR logic)
-    if (professionalFilters.skills.length > 0 && !professionalFilters.skills.some(skill => professional.skills.includes(skill))) {
+    if (professionalFilters.skills && professionalFilters.skills.length > 0 && 
+        !professionalFilters.skills.some((skill: string) => professional.skills?.includes(skill))) {
       return false;
     }
     
     // Filter by experience level
-    if (professionalFilters.experienceLevel && professional.experienceLevel !== professionalFilters.experienceLevel) {
-      return false;
-    }
-    
-    // Filter by minimum rating
-    if (professionalFilters.rating !== null && professionalFilters.rating !== undefined && 
-        (professional.rating === undefined || professional.rating < professionalFilters.rating)) {
+    if (professionalFilters.experienceLevel && 
+        professional.experienceLevel !== professionalFilters.experienceLevel) {
       return false;
     }
     
@@ -281,7 +282,7 @@ export const ProfessionalSearch = () => {
     // Filter by project types - check if ANY of the selected project types matches (OR logic)
     if (professionalFilters.projectTypes && professionalFilters.projectTypes.length > 0 && 
         (!professional.projectTypes || 
-         !professionalFilters.projectTypes.some(type => professional.projectTypes?.includes(type)))) {
+         !professionalFilters.projectTypes.some((type: string) => professional.projectTypes?.includes(type)))) {
       return false;
     }
     
@@ -290,7 +291,7 @@ export const ProfessionalSearch = () => {
       const query = searchQuery.toLowerCase();
       const nameMatch = professional.name.toLowerCase().includes(query);
       const bioMatch = professional.bio?.toLowerCase().includes(query) || false;
-      const skillsMatch = professional.skills.some(skill => skill.toLowerCase().includes(query));
+      const skillsMatch = professional.skills?.some(skill => skill.toLowerCase().includes(query)) || false;
       
       if (!nameMatch && !bioMatch && !skillsMatch) {
         return false;
@@ -312,9 +313,9 @@ export const ProfessionalSearch = () => {
   };
   
   const handleSkillToggle = (skill: string) => {
-    const updatedSkills = professionalFilters.skills.includes(skill)
-      ? professionalFilters.skills.filter(s => s !== skill)
-      : [...professionalFilters.skills, skill];
+    const updatedSkills = professionalFilters.skills?.includes(skill)
+      ? professionalFilters.skills.filter((s: string) => s !== skill)
+      : [...(professionalFilters.skills || []), skill];
     
     setProfessionalFilters({ skills: updatedSkills });
   };
@@ -335,17 +336,13 @@ export const ProfessionalSearch = () => {
     setProfessionalFilters({ experienceLevel });
   };
   
-  const handleRatingChange = (rating: number | null) => {
-    setProfessionalFilters({ rating });
-  };
-  
   const handleCertificationsChange = (hasCertifications: boolean | null) => {
     setProfessionalFilters({ hasCertifications });
   };
   
   const handleProjectTypeToggle = (projectType: string) => {
     const updatedProjectTypes = professionalFilters.projectTypes?.includes(projectType)
-      ? professionalFilters.projectTypes.filter(t => t !== projectType)
+      ? professionalFilters.projectTypes.filter((t: string) => t !== projectType)
       : [...(professionalFilters.projectTypes || []), projectType];
     
     setProfessionalFilters({ projectTypes: updatedProjectTypes });
@@ -363,7 +360,6 @@ export const ProfessionalSearch = () => {
       verified: null,
       experienceLevel: null,
       hasCertifications: null,
-      rating: null,
       maxDistance: null,
       projectTypes: [],
     });
@@ -524,28 +520,6 @@ export const ProfessionalSearch = () => {
                       <Medal className="h-3 w-3 mr-1" />
                       Has Certifications
                     </Badge>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium mb-3 text-slate-800 dark:text-slate-200">Minimum Rating</h3>
-                  <div className="flex items-center space-x-2">
-                    <Select
-                      value={professionalFilters.rating?.toString() || "any"}
-                      onValueChange={(value) => handleRatingChange(value === "any" ? null : parseFloat(value))}
-                    >
-                      <SelectTrigger className="w-full focus-visible:ring-indigo-300 border-slate-200 dark:border-slate-700 transition-all">
-                        <SelectValue placeholder="Any Rating" />
-                      </SelectTrigger>
-                      <SelectContent className="border-slate-200 dark:border-slate-700">
-                        <SelectItem value="any">Any Rating</SelectItem>
-                        <SelectItem value="5">★★★★★ 5.0+</SelectItem>
-                        <SelectItem value="4.5">★★★★☆ 4.5+</SelectItem>
-                        <SelectItem value="4">★★★★ 4.0+</SelectItem>
-                        <SelectItem value="3.5">★★★☆ 3.5+</SelectItem>
-                        <SelectItem value="3">★★★ 3.0+</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
 
@@ -783,7 +757,6 @@ export const ProfessionalSearch = () => {
                 searchQuery === "" &&
                 professionalFilters.experienceLevel === null &&
                 professionalFilters.hasCertifications === null &&
-                professionalFilters.rating === null &&
                 (!professionalFilters.projectTypes || professionalFilters.projectTypes.length === 0)
               }
             >
@@ -944,22 +917,6 @@ const ProfessionalCard: React.FC<{ professional: IProfessional }> = ({ professio
                 >
                   {professional.availability ? "Available Now" : "Currently Unavailable"}
                 </Badge>
-                
-                {professional.rating && (
-                  <div className="mt-3 flex items-center bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-md text-amber-700 dark:text-amber-300 shadow-sm">
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star 
-                          key={star} 
-                          className={`h-3.5 w-3.5 ${star <= Math.round(professional.rating || 0) ? "fill-amber-500 text-amber-500" : "fill-gray-200 text-gray-200 dark:fill-gray-700 dark:text-gray-700"}`} 
-                        />
-                      ))}
-                    </div>
-                    <span className="ml-1.5 font-medium">
-                      {professional.rating?.toFixed(1)}
-                    </span>
-                  </div>
-                )}
               </div>
               
               {/* Info Section */}

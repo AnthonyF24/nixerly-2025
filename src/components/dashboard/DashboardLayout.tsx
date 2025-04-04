@@ -39,6 +39,16 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useCurrentUser, useUnreadMessages } from "@/lib/mock-data-hooks";
 
+// Define notification type interface
+interface NotificationItem {
+  id: number;
+  title: string;
+  message: string;
+  time: string;
+  unread: boolean;
+  type: "application" | "profile" | string;
+}
+
 interface DashboardLayoutProps {
   children: ReactNode;
 }
@@ -86,12 +96,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { href: "/dashboard/profile", label: "Profile & Portfolio", icon: <User className="w-5 h-5" /> },
     { href: "/dashboard/jobs", label: "Job Board", icon: <Briefcase className="w-5 h-5" /> },
-    { 
-      href: "/dashboard/messages", 
-      label: "Messages", 
-      icon: <Mail className="w-5 h-5" />,
-      badge: unreadMessages > 0 ? unreadMessages : undefined 
-    },
     { href: "/dashboard/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
   
@@ -100,12 +104,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { href: "/dashboard/profile", label: "Business Profile", icon: <Building2 className="w-5 h-5" /> },
     { href: "/dashboard/post-job", label: "Post a Job", icon: <FilePlus className="w-5 h-5" /> },
     { href: "/dashboard/find-professionals", label: "Find Professionals", icon: <Search className="w-5 h-5" /> },
-    { 
-      href: "/dashboard/messages", 
-      label: "Messages", 
-      icon: <Mail className="w-5 h-5" />,
-      badge: unreadMessages > 0 ? unreadMessages : undefined 
-    },
     { href: "/dashboard/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
   
@@ -165,7 +163,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   };
 
   // Sample notifications for demo
-  const notifications = [
+  const notifications: NotificationItem[] = [
     {
       id: 1,
       title: "New job application",
@@ -204,9 +202,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <AlignLeft className="h-5 w-5" />
           </button>
           {isSidebarOpen && (
-            <Link href="/" className="ml-3 text-xl font-bold text-blue-600 tracking-tight">
+            <span className="ml-3 text-xl font-bold text-blue-600 tracking-tight">
               Nixerly
-            </Link>
+            </span>
           )}
         </div>
         
@@ -297,9 +295,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <SheetContent side="left" className="w-80 p-0 border-r-0 sm:max-w-full">
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between h-16 px-4 border-b">
-              <Link href="/" className="text-xl font-bold text-blue-600 tracking-tight">
+              <span className="text-xl font-bold text-blue-600 tracking-tight">
                 Nixerly
-              </Link>
+              </span>
               <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
                 <X className="h-5 w-5" />
               </Button>
@@ -441,9 +439,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </Button>
             
             {/* Logo for mobile */}
-            <Link href="/" className="flex items-center gap-2">
+            <span className="flex items-center gap-2">
               <span className="text-xl font-semibold text-blue-600 lg:hidden">Nixerly</span>
-            </Link>
+            </span>
           </div>
           
           <div className="flex items-center gap-3">
@@ -452,8 +450,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-5 w-5" />
-                  {notifications.some(n => n.unread) && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                  {notifications.some((n: NotificationItem) => n.unread) && (
+                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full border border-white shadow-sm animate-pulse"></span>
                   )}
                   <span className="sr-only">Notifications</span>
                 </Button>
@@ -462,7 +460,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <DropdownMenuLabel className="flex items-center justify-between">
                   <span>Notifications</span>
                   <Badge variant="outline" className="text-xs font-normal">
-                    {notifications.filter(n => n.unread).length} new
+                    {notifications.filter((n: NotificationItem) => n.unread).length} new
                   </Badge>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -474,8 +472,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                           <div className={cn(
                             "rounded-full p-2 flex-shrink-0",
                             notification.type === 'application' 
-                              ? "bg-blue-100 text-blue-600" 
-                              : "bg-purple-100 text-purple-600"
+                              ? "bg-gradient-to-br from-blue-50 to-blue-200 text-blue-600 shadow-sm" 
+                              : "bg-gradient-to-br from-purple-50 to-purple-200 text-purple-600 shadow-sm"
                           )}>
                             {notification.type === 'application' && <FileText className="h-4 w-4" />}
                             {notification.type === 'profile' && <User className="h-4 w-4" />}

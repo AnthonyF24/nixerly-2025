@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAppStore } from "@/lib/store";
 import { locationsList, industriesList } from "@/lib/dummy-data";
 import { X, Upload, Building, Globe } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const businessProfileSchema = z.object({
   name: z.string().min(2, {
