@@ -35,10 +35,14 @@ const JobBoardPage = () => {
   
   // For demo purposes, always set as authenticated professional user
   useEffect(() => {
-    // Set authenticated state and professional user type
+    // Set authenticated state
     setIsAuthenticated(true);
-    setProfessional(dummyProfessionals[0]);
-    setUserType("professional");
+    
+    // Only set professional user data if the user is already a professional or there's no user type set
+    if (userType === "professional" || userType === null) {
+      setProfessional(dummyProfessionals[0]);
+      setUserType("professional");
+    }
     
     // In a real application, we would check if the user is authenticated and a professional
     // If not, redirect to login or unauthorized page

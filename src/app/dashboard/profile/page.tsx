@@ -25,8 +25,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import { SuspenseWrapper } from "@/lib/utils";
 
 const ProfilePage = () => {
+  return (
+    <SuspenseWrapper>
+      <ProfileContent />
+    </SuspenseWrapper>
+  );
+};
+
+const ProfileContent = () => {
   const { userType, professional, business, setProfessional, setBusiness, setUserType, setIsAuthenticated } = useAppStore();
   const [activeSection, setActiveSection] = useState("info");
   

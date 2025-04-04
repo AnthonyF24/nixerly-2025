@@ -7,15 +7,19 @@ import { useAppStore } from "@/lib/store";
 import { dummyBusinesses } from "@/lib/dummy-data";
 
 const FindProfessionalsPage = () => {
-  const { setBusiness, setUserType, setIsAuthenticated } = useAppStore();
+  const { setBusiness, setUserType, setIsAuthenticated, userType } = useAppStore();
   
   // For demo purposes, always set as authenticated business user
   useEffect(() => {
-    // Set authenticated state and business user type
+    // Set authenticated state
     setIsAuthenticated(true);
-    setBusiness(dummyBusinesses[0]);
-    setUserType("business");
-  }, [setBusiness, setUserType, setIsAuthenticated]);
+    
+    // Only set business user data if the user is already a business or there's no user type set
+    if (userType === "business" || userType === null) {
+      setBusiness(dummyBusinesses[0]);
+      setUserType("business");
+    }
+  }, [setBusiness, setUserType, setIsAuthenticated, userType]);
 
   return (
     <DashboardLayout>

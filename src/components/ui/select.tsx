@@ -125,11 +125,15 @@ function SelectItem({
       <SelectPrimitive.ItemText>
         {typeof children === 'string' ? children : (
           Array.isArray(children) ? 
-            React.Children.map(children, (child, index) => 
-              React.isValidElement(child) ? 
-                React.cloneElement(child, { key: `select-item-${value}-${index}` }) : 
-                <React.Fragment key={`select-fragment-${value}-${index}`}>{child}</React.Fragment>
-            ) :
+            React.Children.map(children, (child, index) => {
+              if (React.isValidElement(child)) {
+                return React.cloneElement(child, { 
+                  key: `select-item-${index}`,
+                  ...child.props 
+                });
+              }
+              return <React.Fragment key={`select-fragment-${index}`}>{child}</React.Fragment>;
+            }) :
             children
         )}
       </SelectPrimitive.ItemText>

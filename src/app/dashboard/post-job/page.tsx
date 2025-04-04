@@ -121,26 +121,17 @@ const PostJobPage = () => {
             <h2 className={cn("text-xl font-semibold", activeTheme.classes.primaryText)}>
               What would you like to do?
             </h2>
-            <TabsList className={cn(
-              "border rounded-xl p-1 shadow-sm transition-all duration-200", 
-              activeTheme.classes.primaryBorder
-            )}>
+            <TabsList className="flex items-center justify-center p-1 bg-gray-100 rounded-full space-x-1 w-auto">
               <TabsTrigger 
                 value="post" 
-                className={cn(
-                  "data-[state=active]:rounded-lg transition-all duration-200",
-                  "data-[state=active]:", activeTheme.classes.primaryBg, activeTheme.classes.primaryText
-                )}
+                className="px-4 py-2 rounded-full text-gray-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
               >
                 Post New Job
               </TabsTrigger>
               <TabsTrigger 
                 value="manage" 
                 id="manage-tab"
-                className={cn(
-                  "data-[state=active]:rounded-lg transition-all duration-200",
-                  "data-[state=active]:", activeTheme.classes.primaryBg, activeTheme.classes.primaryText
-                )}
+                className="px-4 py-2 rounded-full text-gray-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200"
               >
                 Manage Jobs
               </TabsTrigger>

@@ -75,7 +75,7 @@ const settingsFormSchema = z.object({
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 
 const SettingsPage = () => {
-  const { professional, setProfessional, setUserType, setIsAuthenticated } = useAppStore();
+  const { professional, setProfessional, setUserType, setIsAuthenticated, userType } = useAppStore();
   const [isSaved, setIsSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<"security" | "notifications" | "preferences" | "contact">("security");
   
@@ -85,14 +85,18 @@ const SettingsPage = () => {
   // For demo purposes
   useEffect(() => {
     setIsAuthenticated(true);
-    setProfessional(dummyProfessionals[0]);
-    setUserType("professional");
+    
+    // Only set professional user data if the user is already a professional or there's no user type set
+    if (userType === "professional" || userType === null) {
+      setProfessional(dummyProfessionals[0]);
+      setUserType("professional");
+    }
     
     // Set active tab from URL parameter if valid
     if (tabParam && ['security', 'notifications', 'preferences', 'contact'].includes(tabParam)) {
       setActiveTab(tabParam as "security" | "notifications" | "preferences" | "contact");
     }
-  }, [setProfessional, setUserType, setIsAuthenticated, tabParam]);
+  }, [setProfessional, setUserType, setIsAuthenticated, tabParam, userType]);
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),

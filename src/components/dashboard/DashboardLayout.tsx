@@ -1,3 +1,5 @@
+"use client";
+
 import React, { ReactNode, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -86,11 +88,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const userEmail = currentUser?.email || '';
   const userInitials = userName ? userName.split(" ").map(n => n[0]).join("") : "U";
   
-  // Check if business user has paid subscription
-  const hasBusinessPaidSubscription = isAuthenticated && userType === 'business' && currentUser?.verified;
+  // Check if business user has paid subscription - note that verified is stored in business/professional objects, not the User
+  const hasBusinessPaidSubscription = isAuthenticated && userType === 'business' && useAppStore.getState().business?.verified;
   
   // Check if professional user has verified account
-  const isProfessionalVerified = isAuthenticated && userType === 'professional' && currentUser?.verified;
+  const isProfessionalVerified = isAuthenticated && userType === 'professional' && useAppStore.getState().professional?.verified;
   
   const professionalNavItems = [
     { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },

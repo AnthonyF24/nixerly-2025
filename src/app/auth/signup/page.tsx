@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,6 +56,28 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [userType, setUserType] = useState<'professional' | 'business'>('professional');
   const router = useRouter();
+  
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-16 flex justify-center">Loading...</div>}>
+      <SignupContent initialUserType={userType} setInitialUserType={setUserType} loading={loading} setLoading={setLoading} router={router} />
+    </Suspense>
+  );
+}
+
+function SignupContent({ 
+  initialUserType, 
+  setInitialUserType, 
+  loading, 
+  setLoading, 
+  router 
+}: { 
+  initialUserType: 'professional' | 'business'; 
+  setInitialUserType: (type: 'professional' | 'business') => void;
+  loading: boolean;
+  setLoading: (loading: boolean) => void;
+  router: ReturnType<typeof useRouter>;
+}) {
+  const [userType, setUserType] = useState<'professional' | 'business'>(initialUserType);
   const searchParams = useSearchParams();
   const { toast } = useToast();
   
@@ -86,12 +108,14 @@ export default function SignupPage() {
   // Handle tab change
   const handleTypeChange = (value: string) => {
     setUserType(value as 'professional' | 'business');
+    setInitialUserType(value as 'professional' | 'business');
   };
   
   // Set initial user type from URL param if available
   useState(() => {
     if (typeParam === 'professional' || typeParam === 'business') {
       setUserType(typeParam);
+      setInitialUserType(typeParam);
     }
   });
   
