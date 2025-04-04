@@ -80,6 +80,15 @@ export interface JobFilters {
   skills: string[];
   location?: string;
   status: 'open' | 'closed' | 'draft' | null;
+  searchQuery?: string;
+  jobType?: string[];
+  salaryMin?: number;
+  salaryMax?: number;
+  datePosted?: string;
+  experienceLevel?: string[];
+  certifications?: string[];
+  remoteOnly?: boolean;
+  savedFilters?: boolean;
 }
 
 // Professional Filters interface
@@ -151,6 +160,15 @@ export const useAppStore = create<AppState>((set) => ({
     skills: [],
     location: undefined,
     status: null,
+    searchQuery: '',
+    jobType: [],
+    salaryMin: undefined,
+    salaryMax: undefined,
+    datePosted: undefined,
+    experienceLevel: [],
+    certifications: [],
+    remoteOnly: false,
+    savedFilters: false,
   },
   setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
   setUserType: (userType) => set({ userType }),

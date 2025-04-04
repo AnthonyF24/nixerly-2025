@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useAppStore } from "@/lib/store";
-import JobFilters from "@/components/jobs/JobFilters";
+import AdvancedSearchFilters from "@/components/jobs/AdvancedSearchFilters";
 import JobList from "@/components/jobs/JobList";
 import { dummyProfessionals } from "@/lib/dummy-data";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,8 @@ import {
   Map,
   CalendarCheck,
   Globe2,
-  Clock
+  Clock,
+  SlidersHorizontal
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
 
 const JobBoardPage = () => {
   const { setProfessional, setUserType, setIsAuthenticated, isAuthenticated, userType, professional, jobFilters, setJobFilters } = useAppStore();
@@ -214,7 +216,7 @@ const JobBoardPage = () => {
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <div className="lg:col-span-1 order-2 lg:order-1 h-full">
                   <div className="sticky top-4">
-                    <JobFilters />
+                    <AdvancedSearchFilters />
                   </div>
                 </div>
                 

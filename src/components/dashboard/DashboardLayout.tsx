@@ -43,6 +43,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useCurrentUser, useUnreadMessages } from "@/lib/mock-data-hooks";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
 
 // Define notification type interface
 interface NotificationItem {
@@ -476,72 +477,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           
           <div className="flex items-center gap-3">
             {/* Notifications dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-5 w-5" />
-                  {notifications.some((n: NotificationItem) => n.unread) && (
-                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full border border-white shadow-sm animate-pulse"></span>
-                  )}
-                  <span className="sr-only">Notifications</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel className="flex items-center justify-between">
-                  <span>Notifications</span>
-                  <Badge variant="outline" className="text-xs font-normal">
-                    {notifications.filter((n: NotificationItem) => n.unread).length} new
-                  </Badge>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <div className="max-h-[300px] overflow-y-auto">
-                  {notifications.length > 0 ? (
-                    notifications.map((notification) => (
-                      <DropdownMenuItem key={notification.id} className="flex flex-col items-start p-3 cursor-pointer">
-                        <div className="flex w-full gap-3">
-                          <div className={cn(
-                            "rounded-full p-2 flex-shrink-0",
-                            notification.type === 'application' 
-                              ? "bg-gradient-to-br from-blue-50 to-blue-200 text-blue-600 shadow-sm" 
-                              : "bg-gradient-to-br from-purple-50 to-purple-200 text-purple-600 shadow-sm"
-                          )}>
-                            {notification.type === 'application' && <FileText className="h-4 w-4" />}
-                            {notification.type === 'profile' && <User className="h-4 w-4" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className={cn(
-                                "font-medium text-sm leading-tight",
-                                notification.unread ? "text-gray-900" : "text-gray-700"
-                              )}>
-                                {notification.title}
-                              </p>
-                              {notification.unread && (
-                                <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
-                              )}
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {notification.message}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              {notification.time}
-                            </p>
-                          </div>
-                        </div>
-                      </DropdownMenuItem>
-                    ))
-                  ) : (
-                    <div className="py-4 text-center text-sm text-gray-500">
-                      No notifications yet
-                    </div>
-                  )}
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="justify-center text-sm text-blue-600 font-medium cursor-pointer">
-                  View all notifications
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <NotificationCenter />
             
             {/* WhatsApp button (only visible on larger screens) */}
             <Button 
