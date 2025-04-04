@@ -36,7 +36,7 @@ import { useCurrentUser, useJobs } from "@/lib/mock-data-hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from 'date-fns';
 
-export const ProfessionalDashboard = () => {
+const ProfessionalDashboard = () => {
   const { currentUser } = useAppStore();
   const { user: professional, loading: userLoading } = useCurrentUser();
   const { jobs: allJobs, loading: jobsLoading } = useJobs();
@@ -116,9 +116,9 @@ export const ProfessionalDashboard = () => {
               <p className="text-purple-100 mt-1">
                 {profileCompleteness < 100 
                   ? 'Complete your profile to get noticed by more businesses'
-                  : 'Your profile is looking great! Here's your activity'}
+                  : 'Your profile is looking great! Here\'s your activity'}
               </p>
-                </div>
+            </div>
             <Button className="bg-white text-purple-700 hover:bg-purple-50" asChild>
               <Link href="/dashboard/profile">
                 {profileCompleteness < 100 ? (
@@ -240,14 +240,14 @@ export const ProfessionalDashboard = () => {
                 <div key={index} className="flex gap-3 items-start p-2 rounded-lg hover:bg-purple-50 transition-colors">
                   <div className={`shrink-0 p-2 rounded-lg ${activity.iconColorClass}`}>
                     <activity.icon className="h-4 w-4" />
-              </div>
+                  </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium">
                         {activity.title}
                       </p>
                       <span className="text-xs text-gray-500">{activity.date}</span>
-            </div>
+                    </div>
                     <p className="text-xs text-gray-500 mt-0.5">{activity.description}</p>
                   </div>
                 </div>
@@ -278,11 +278,13 @@ export const ProfessionalDashboard = () => {
                   </div>
                   <ChevronRight className="h-4 w-4 text-blue-500" />
                 </Link>
-                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
-}; 
+};
+
+export default ProfessionalDashboard; 

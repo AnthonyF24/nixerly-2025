@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { ProfessionalDashboard } from "@/components/professional/ProfessionalDashboard";
+import ProfessionalDashboard from "@/components/professional/ProfessionalDashboard";
 import { BusinessDashboard } from "@/components/business/BusinessDashboard";
 import { useAppStore } from "@/lib/store";
 import { useSearchParams } from "next/navigation";
