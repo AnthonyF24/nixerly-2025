@@ -146,7 +146,7 @@ const AdminRevenueChart = () => {
       });
       
       // Draw legend
-      const legendY = 20;
+      let legendY = 20;
       let legendX = width - 200;
       const legendItemWidth = 120;
       const legendItemHeight = 20;

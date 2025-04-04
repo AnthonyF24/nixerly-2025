@@ -28,7 +28,9 @@ import {
   FileText,
   LayoutDashboard,
   Search,
-  Shield
+  Shield,
+  Users,
+  Activity
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -119,6 +121,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     });
   }
   
+  // Admin navigation items
+  const adminNavItems = [
+    { href: "/dashboard/admin", label: "Admin Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
+    { href: "/dashboard/admin/users", label: "Manage Users", icon: <Users className="w-5 h-5" /> },
+    { href: "/dashboard/admin/jobs", label: "Manage Jobs", icon: <Briefcase className="w-5 h-5" /> },
+    { href: "/dashboard/admin/businesses", label: "Manage Businesses", icon: <Building2 className="w-5 h-5" /> },
+    { href: "/dashboard/admin/professionals", label: "Manage Professionals", icon: <Activity className="w-5 h-5" /> },
+    { href: "/dashboard", label: "Back to Dashboard", icon: <ExternalLink className="w-5 h-5" /> },
+  ];
+  
   // Public navigation links (for non-authenticated users)
   const publicNavItems = [
     { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
@@ -137,7 +149,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     }
   }
   
-  const navItems = userType === "professional" ? professionalNavItems : businessNavItems;
+  // Determine which navigation items to use
+  let navItems = businessNavItems;
+  
+  if (userType === "professional") {
+    navItems = professionalNavItems;
+  } else if (pathname?.startsWith("/dashboard/admin")) {
+    navItems = adminNavItems;
+  }
 
   // Function to check if a navigation item is active
   const isNavItemActive = (href: string) => {

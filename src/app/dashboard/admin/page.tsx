@@ -8,7 +8,7 @@ import { useAppStore } from "@/lib/store";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, BarChart3, Box, Building2, Clock, DollarSign, LineChart, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
-import DashboardStat from "@/components/dashboard/DashboardStat";
+import DashboardStat from "@/components/dashboard/DashboardStats";
 import AdminUsersList from "@/components/admin/AdminUsersList";
 import AdminJobsList from "@/components/admin/AdminJobsList";
 import AdminProfessionalsList from "@/components/admin/AdminProfessionalsList";
@@ -38,13 +38,13 @@ const AdminDashboardPage = () => {
   useEffect(() => {
     // Set authenticated state and admin user
     setIsAuthenticated(true);
-    setUserType("business"); // Using business type for admin as we don't have a dedicated admin type
+    setUserType("admin"); // Use a dedicated admin type instead of business
     setCurrentUser({
       id: "admin-1",
       name: "Admin User",
       email: "admin@nixerly.com",
       avatar: "/avatars/admin.jpg",
-      role: "business", // Using business role as we don't have a dedicated admin role
+      role: "admin", // Use admin role instead of business
       joinedAt: new Date().toISOString(),
       location: "Dublin, Ireland",
       company: "Nixerly",
