@@ -27,7 +27,8 @@ import {
   Building2,
   FileText,
   LayoutDashboard,
-  Search
+  Search,
+  Shield
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -108,6 +109,15 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { href: "/dashboard/find-professionals", label: "Find Professionals", icon: <Search className="w-5 h-5" /> },
     { href: "/dashboard/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
+  
+  // Add admin dashboard link if the user is an admin (founder)
+  if (currentUser?.email === "admin@nixerly.com") {
+    businessNavItems.push({
+      href: "/dashboard/admin",
+      label: "Admin Panel",
+      icon: <Shield className="w-5 h-5" />
+    });
+  }
   
   // Public navigation links (for non-authenticated users)
   const publicNavItems = [
