@@ -42,6 +42,7 @@ export interface IProfessional {
   experienceLevel?: 'beginner' | 'intermediate' | 'expert';
   projectTypes?: string[];
   yearsOfExperience?: number;
+  coverImageUrl?: string;
 }
 
 // Business interface

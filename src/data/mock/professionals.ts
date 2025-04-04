@@ -30,6 +30,7 @@ export type Professional = User & {
   portfolioUrls?: string[];
   rating?: number;
   completedJobs?: number;
+  coverImageUrl?: string;
 };
 
 // Filter professionals from users and add professional-specific data
@@ -88,7 +89,8 @@ export const professionals: Professional[] = users
           ],
           certifications: ['AWS Certified Solutions Architect', 'Red Hat Certified Engineer', 'Kubernetes Administrator'],
           rating: 4.8,
-          completedJobs: 27
+          completedJobs: 27,
+          coverImageUrl: '/images/covers/tech-cover-1.jpg'
         };
 
       case 'Taylor Greene':
@@ -138,7 +140,8 @@ export const professionals: Professional[] = users
           certifications: ['NixOS Certified Specialist', 'Jenkins Certified Engineer', 'Google Cloud Professional'],
           portfolioUrls: ['https://github.com/taylorgreene', 'https://devops-portfolio.example.com'],
           rating: 4.9,
-          completedJobs: 32
+          completedJobs: 32,
+          coverImageUrl: '/images/covers/tech-cover-2.jpg'
         };
 
       case 'Morgan Chen':
@@ -180,7 +183,8 @@ export const professionals: Professional[] = users
           certifications: ['Node.js Certification', 'React Developer Certification', 'Nix Package Manager Expert'],
           portfolioUrls: ['https://github.com/morganchen', 'https://morganchen-dev.example.com'],
           rating: 4.7,
-          completedJobs: 18
+          completedJobs: 18,
+          coverImageUrl: '/images/covers/tech-cover-3.jpg'
         };
 
       default:

@@ -140,6 +140,68 @@ export const ProfileForm = () => {
                 )}
               />
 
+              {/* Cover Image Upload Section */}
+              <div className="mb-6">
+                <FormLabel className="text-base block mb-2">Profile Cover Image</FormLabel>
+                <div className="relative h-40 rounded-lg overflow-hidden border-2 border-dashed hover:border-blue-300 transition-colors">
+                  {professional?.coverImageUrl ? (
+                    <div className="relative h-full w-full">
+                      <img 
+                        src={professional.coverImageUrl} 
+                        alt="Cover image" 
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/10 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 border border-white/20"
+                          onClick={() => {
+                            if (!professional) return;
+                            const updatedProfessional = { ...professional };
+                            delete updatedProfessional.coverImageUrl;
+                            setProfessional(updatedProfessional);
+                          }}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-full w-full flex flex-col items-center justify-center cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors"
+                      onClick={() => {
+                        // In a real app, this would trigger the file upload dialog
+                        if (!professional) return;
+                        
+                        // For demo, we'll use a sample cover image
+                        const sampleCovers = [
+                          '/images/covers/construction-cover.jpg',
+                          '/images/covers/engineering-cover.jpg',
+                          '/images/covers/electrical-cover.jpg',
+                          '/images/covers/plumbing-cover.jpg',
+                          '/images/covers/professional-cover.jpg'
+                        ];
+                        
+                        const randomCover = sampleCovers[Math.floor(Math.random() * sampleCovers.length)];
+                        
+                        setProfessional({
+                          ...professional,
+                          coverImageUrl: randomCover
+                        });
+                      }}
+                    >
+                      <Upload className="h-6 w-6 text-blue-500 mb-2" />
+                      <p className="text-sm text-gray-500">Click to upload cover image</p>
+                      <p className="text-xs text-gray-400 mt-1">Recommended size: 1600×400 (Max 5MB)</p>
+                    </div>
+                  )}
+                </div>
+                <FormDescription className="mt-2">
+                  Your cover image appears at the top of your profile and dashboard. Choose an image that represents your professional work.
+                </FormDescription>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}

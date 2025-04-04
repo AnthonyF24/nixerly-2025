@@ -34,6 +34,7 @@ export type Professional = {
   portfolio: PortfolioItem[];
   profileUrl: string;
   profileImageUrl: string;
+  coverImageUrl?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -87,6 +88,7 @@ export const professionals: Professional[] = [
     ],
     profileUrl: "/professionals/prof-001",
     profileImageUrl: "/images/profiles/john-doyle.jpg",
+    coverImageUrl: "/images/covers/electrical-cover.jpg",
     createdAt: "2023-10-15T10:20:30Z",
     updatedAt: "2024-03-25T14:15:45Z"
   },
@@ -136,6 +138,7 @@ export const professionals: Professional[] = [
     ],
     profileUrl: "/professionals/prof-002",
     profileImageUrl: "/images/profiles/sarah-murphy.jpg",
+    coverImageUrl: "/images/covers/engineer-cover.jpg",
     createdAt: "2023-11-02T09:15:20Z",
     updatedAt: "2024-02-18T11:45:30Z"
   },
@@ -180,6 +183,7 @@ export const professionals: Professional[] = [
     ],
     profileUrl: "/professionals/prof-003",
     profileImageUrl: "/images/profiles/michael-obrien.jpg",
+    coverImageUrl: "/images/covers/plumbing-cover.jpg",
     createdAt: "2023-12-05T16:40:10Z",
     updatedAt: "2024-01-30T09:20:15Z"
   }

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
 import { 
   Briefcase, 
   Clock, 
@@ -108,34 +109,48 @@ const ProfessionalDashboard = () => {
   return (
     <div className="space-y-8">
       {/* Welcome Banner */}
-      <Card className="bg-gradient-to-br from-purple-600 to-indigo-600 text-white border-none shadow-md">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold">Welcome back, {professional.name}</h1>
-              <p className="text-purple-100 mt-1">
-                {profileCompleteness < 100 
-                  ? 'Complete your profile to get noticed by more businesses'
-                  : 'Your profile is looking great! Here\'s your activity'}
-              </p>
+      <Card className="border-none shadow-md overflow-hidden">
+        <div className="relative h-48">
+          {professional.coverImageUrl ? (
+            <Image 
+              src={professional.coverImageUrl} 
+              alt={`${professional.name}'s cover image`}
+              fill
+              className="object-cover brightness-75"
+              priority
+            />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-purple-600 to-indigo-600"></div>
+          )}
+          
+          <CardContent className="p-6 relative z-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="text-white">
+                <h1 className="text-2xl font-bold">Welcome back, {professional.name}</h1>
+                <p className="text-white/80 mt-1">
+                  {profileCompleteness < 100 
+                    ? 'Complete your profile to get noticed by more businesses'
+                    : 'Your profile is looking great! Here\'s your activity'}
+                </p>
+              </div>
+              <Button className="bg-white text-purple-700 hover:bg-purple-50" asChild>
+                <Link href="/dashboard/profile">
+                  {profileCompleteness < 100 ? (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Complete Profile
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Profile
+                    </>
+                  )}
+                </Link>
+              </Button>
             </div>
-            <Button className="bg-white text-purple-700 hover:bg-purple-50" asChild>
-              <Link href="/dashboard/profile">
-                {profileCompleteness < 100 ? (
-                  <>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Complete Profile
-                  </>
-                ) : (
-                  <>
-                    <Eye className="mr-2 h-4 w-4" />
-                    View Profile
-                  </>
-                )}
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
+          </CardContent>
+        </div>
       </Card>
 
       {/* Stats Cards */}

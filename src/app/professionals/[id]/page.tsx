@@ -43,6 +43,7 @@ export default function ProfessionalProfilePage({ params }: ProfilePageProps) {
     certifications,
     portfolio,
     profileImageUrl,
+    coverImageUrl,
   } = professional;
   
   const availabilityColors = {
@@ -69,11 +70,11 @@ export default function ProfessionalProfilePage({ params }: ProfilePageProps) {
     <NotificationProvider>
       <div className="container mx-auto py-8 px-4 max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
-          <Link href="/professionals" className="text-indigo-600 hover:text-indigo-800 flex items-center transition-colors group">
+          <Link href="/dashboard/find-professionals" className="text-indigo-600 hover:text-indigo-800 flex items-center transition-colors group">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 mr-1 group-hover:-translate-x-1 transition-transform">
               <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 010-1.06l7.5-7.5a.75.75 0 111.06 1.06L9.31 12l6.97 6.97a.75.75 0 11-1.06 1.06l-7.5-7.5z" clipRule="evenodd" />
             </svg>
-            <span className="font-medium">Back to Professionals</span>
+            <span className="font-medium">Back to Professionals Search</span>
           </Link>
           <Button variant="outline" className="flex items-center gap-1 rounded-full px-4">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
@@ -86,7 +87,18 @@ export default function ProfessionalProfilePage({ params }: ProfilePageProps) {
         </div>
         
         <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div className="h-48 bg-gradient-to-r from-indigo-500 to-purple-600 relative">
+          <div className="h-48 relative">
+            {coverImageUrl ? (
+              <Image 
+                src={coverImageUrl} 
+                alt={`${name}'s cover image`}
+                fill
+                className="object-cover"
+                priority
+              />
+            ) : (
+              <div className="h-full w-full bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent"></div>
           </div>
           
@@ -147,7 +159,7 @@ export default function ProfessionalProfilePage({ params }: ProfilePageProps) {
               {/* Profile Info */}
               <div className="flex-1 pt-6 md:pt-0">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
+                  <div className="mt-16 md:mt-16">
                     <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
                       {name}
                       {hasVerifiedCertifications && (
