@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -37,34 +37,61 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useCurrentUser, useUnreadMessages } from "@/lib/mock-data-hooks";
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { 
+    isSidebarOpen,
+    toggleSidebar,
+    setSidebarOpen,
+    userType, 
+    isAuthenticated,
+    logout,
+    currentUser
+  } = useAppStore();
+  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const { userType, professional, business, logout, isAuthenticated } = useAppStore();
   const pathname = usePathname();
   
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  // Get current user data from mock data hooks
+  const { user, loading: userLoading } = useCurrentUser();
   
-  const userName = userType === "professional" ? professional?.name : business?.name;
-  const userEmail = userType === "professional" ? professional?.email : business?.email;
+  // Set the current user in the app store whenever it changes from the hook
+  useEffect(() => {
+    if (user && !userLoading) {
+      // Update the app state with user data
+      useAppStore.getState().setCurrentUser(user);
+    }
+  }, [user, userLoading]);
+  
+  // Get unread messages for current user
+  const { unreadCount: unreadMessages } = useUnreadMessages(user?.id || '');
+  
+  const userName = currentUser?.name || '';
+  const userEmail = currentUser?.email || '';
   const userInitials = userName ? userName.split(" ").map(n => n[0]).join("") : "U";
   
   // Check if business user has paid subscription
-  const hasBusinessPaidSubscription = isAuthenticated && userType === 'business' && business?.verified;
+  const hasBusinessPaidSubscription = isAuthenticated && userType === 'business' && currentUser?.verified;
   
   // Check if professional user has verified account
-  const isProfessionalVerified = isAuthenticated && userType === 'professional' && professional?.verified;
+  const isProfessionalVerified = isAuthenticated && userType === 'professional' && currentUser?.verified;
   
   const professionalNavItems = [
     { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { href: "/dashboard/profile", label: "Profile & Portfolio", icon: <User className="w-5 h-5" /> },
     { href: "/dashboard/jobs", label: "Job Board", icon: <Briefcase className="w-5 h-5" /> },
+    { 
+      href: "/dashboard/messages", 
+      label: "Messages", 
+      icon: <Mail className="w-5 h-5" />,
+      badge: unreadMessages > 0 ? unreadMessages : undefined 
+    },
     { href: "/dashboard/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
   
@@ -73,12 +100,20 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { href: "/dashboard/profile", label: "Business Profile", icon: <Building2 className="w-5 h-5" /> },
     { href: "/dashboard/post-job", label: "Post a Job", icon: <FilePlus className="w-5 h-5" /> },
     { href: "/dashboard/find-professionals", label: "Find Professionals", icon: <Search className="w-5 h-5" /> },
+    { 
+      href: "/dashboard/messages", 
+      label: "Messages", 
+      icon: <Mail className="w-5 h-5" />,
+      badge: unreadMessages > 0 ? unreadMessages : undefined 
+    },
     { href: "/dashboard/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
   
   // Public navigation links (for non-authenticated users)
   const publicNavItems = [
-    // Home link removed
+    { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
+    { href: "/jobs", label: "Browse Jobs", icon: <Briefcase className="w-5 h-5" /> },
+    { href: "/professionals", label: "Find Professionals", icon: <User className="w-5 h-5" /> },
   ];
   
   // Add conditional navigation items for non-authenticated users
@@ -155,7 +190,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <aside
         className={cn(
           "hidden lg:flex flex-col bg-muted/30 border-r transition-all duration-300 overflow-hidden",
-          sidebarOpen ? "w-64" : "w-16"
+          isSidebarOpen ? "w-64" : "w-16"
         )}
       >
         <div className="flex items-center h-16 px-4 border-b">
@@ -168,7 +203,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           >
             <AlignLeft className="h-5 w-5" />
           </button>
-          {sidebarOpen && (
+          {isSidebarOpen && (
             <Link href="/" className="ml-3 text-xl font-bold text-blue-600 tracking-tight">
               Nixerly
             </Link>
@@ -186,7 +221,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     tabIndex={0}
                   >
                     {item.icon}
-                    {sidebarOpen && <span>{item.label}</span>}
+                    {isSidebarOpen && <span>{item.label}</span>}
                   </Link>
                 </li>
               ))}
@@ -201,7 +236,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     tabIndex={0}
                   >
                     {item.icon}
-                    {sidebarOpen && <span>{item.label}</span>}
+                    {isSidebarOpen && <span>{item.label}</span>}
                   </Link>
                 </li>
               ))}
@@ -215,41 +250,41 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               variant="ghost"
               className={cn(
                 "w-full flex items-center gap-3 justify-start",
-                !sidebarOpen && "justify-center"
+                !isSidebarOpen && "justify-center"
               )}
               onClick={() => logout()}
               tabIndex={0}
             >
               <LogOut className="h-5 w-5" />
-              {sidebarOpen && <span>Logout</span>}
+              {isSidebarOpen && <span>Logout</span>}
             </Button>
           ) : (
-            <div className={cn("space-y-2", !sidebarOpen && "space-y-4")}>
+            <div className={cn("space-y-2", !isSidebarOpen && "space-y-4")}>
               <Button 
                 variant="outline" 
                 size="sm" 
                 className={cn(
                   "w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300",
-                  sidebarOpen ? "justify-start" : "px-0"
+                  isSidebarOpen ? "justify-start" : "px-0"
                 )} 
                 asChild
               >
                 <Link href="/auth/login">
                   <User className="h-4 w-4 mr-2" />
-                  {sidebarOpen && <span>Login</span>}
+                  {isSidebarOpen && <span>Login</span>}
                 </Link>
               </Button>
               <Button 
                 size="sm" 
                 className={cn(
                   "w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm",
-                  sidebarOpen ? "justify-start" : "px-0"
+                  isSidebarOpen ? "justify-start" : "px-0"
                 )} 
                 asChild
               >
                 <Link href="/auth/signup">
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  {sidebarOpen && <span>Sign Up</span>}
+                  {isSidebarOpen && <span>Sign Up</span>}
                 </Link>
               </Button>
             </div>

@@ -1,239 +1,47 @@
 import { create } from 'zustand';
-import { dummyProfessionals, dummyJobs } from './dummy-data';
+import { User, Professional } from '@/data/mock';
 
-// Professional types
-export interface IProfessional {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  bio?: string;
-  skills: string[];
-  certifications?: ICertification[];
-  portfolio?: IPortfolioItem[];
-  availability: boolean;
-  location?: string;
-  town?: string;
-  country?: string;
-  profileComplete: number;
-  verified: boolean;
-  jobApplications?: IJobApplication[]; // Track job applications
-  experienceLevel?: 'entry' | 'intermediate' | 'expert';
-  rating?: number;
-  projectTypes?: string[];
-  yearsOfExperience?: number;
-}
+type UserType = 'business' | 'professional' | null;
 
-// Job application type
-export interface IJobApplication {
-  id: string;
-  jobId: string;
-  professionalId: string;
-  appliedAt: string;
-  status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
-  coverNote?: string;
-}
-
-export interface ICertification {
-  id: string;
-  name: string;
-  issuer: string;
-  date: string;
-  validUntil?: string;
-  verified: boolean;
-  documentUrl?: string;
-}
-
-export interface IPortfolioItem {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl?: string;
-  altText?: string;
-  tags?: string[];
-  date: string;
-}
-
-// Business types
-export interface IBusiness {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  description?: string;
-  industry: string[];
-  location?: string;
-  town?: string;
-  country?: string;
-  verified: boolean;
-  profileComplete?: number;
-  logoUrl?: string;
-}
-
-export interface IJob {
-  id: string;
-  title: string;
-  description: string;
-  businessId: string;
-  businessName: string;
-  location?: string;
-  country?: string;
-  city?: string;
-  skills: string[];
-  datePosted: string;
-  deadline?: string;
-  status: 'open' | 'closed' | 'draft' | 'applied';
-  salaryMin?: number;
-  salaryMax?: number;
-  salaryType?: 'hourly' | 'daily' | 'annual';
-}
-
-// Filter types
-export interface IProfessionalFilters {
-  skills: string[];
-  availability: boolean | null;
-  location?: string;
-  verified: boolean | null;
-  experienceLevel?: 'entry' | 'intermediate' | 'expert' | null;
-  hasCertifications?: boolean | null;
-  rating?: number | null;
-  maxDistance?: number | null;
-  projectTypes?: string[];
-}
-
-export interface IJobFilters {
-  skills: string[];
-  location?: string;
-  status: 'open' | 'closed' | 'draft' | null;
-}
-
-// Store types
 interface AppState {
-  userType: 'professional' | 'business' | null;
-  professional: IProfessional | null;
-  business: IBusiness | null;
-  jobs: IJob[];
-  jobApplications: IJobApplication[];
-  professionalFilters: IProfessionalFilters;
-  jobFilters: IJobFilters;
   isAuthenticated: boolean;
-  
-  // Actions
-  setUserType: (type: 'professional' | 'business' | null) => void;
-  setProfessional: (professional: IProfessional | null) => void;
-  setBusiness: (business: IBusiness | null) => void;
-  setJobs: (jobs: IJob[]) => void;
-  addJob: (job: IJob) => void;
-  updateJob: (job: IJob) => void;
-  setProfessionalFilters: (filters: Partial<IProfessionalFilters>) => void;
-  setJobFilters: (filters: Partial<IJobFilters>) => void;
+  userType: UserType;
+  currentUser: User | null;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
+  setUserType: (userType: UserType) => void;
+  setCurrentUser: (user: User | null) => void;
   logout: () => void;
   
-  // Job application actions
-  addJobApplication: (application: Omit<IJobApplication, 'id' | 'appliedAt'>) => void;
-  getJobApplicationsForProfessional: (professionalId: string) => IJobApplication[];
-  hasAppliedToJob: (jobId: string, professionalId: string) => boolean;
+  // Navigation state
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+  setSidebarOpen: (isOpen: boolean) => void;
+  
+  // UI preferences
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
-  userType: null,
-  professional: null,
-  business: null,
-  jobs: [],
-  jobApplications: [],
-  professionalFilters: {
-    skills: [],
-    availability: null,
-    location: undefined,
-    verified: null,
-    experienceLevel: null,
-    hasCertifications: null,
-    rating: null,
-    maxDistance: null,
-    projectTypes: [],
-  },
-  jobFilters: {
-    skills: [],
-    location: undefined,
-    status: null,
-  },
+export const useAppStore = create<AppState>((set) => ({
+  // Auth state
   isAuthenticated: false,
-  
-  // Actions
-  setUserType: (type) => set({ userType: type }),
-  setProfessional: (professional) => set({ professional }),
-  setBusiness: (business) => set({ business }),
-  setJobs: (jobs) => set({ jobs }),
-  addJob: (job) => set((state) => ({ jobs: [...state.jobs, job] })),
-  updateJob: (job) => set((state) => ({
-    jobs: state.jobs.map((j) => (j.id === job.id ? job : j)),
-  })),
-  setProfessionalFilters: (filters) => set((state) => ({
-    professionalFilters: { ...state.professionalFilters, ...filters },
-  })),
-  setJobFilters: (filters) => set((state) => ({
-    jobFilters: { ...state.jobFilters, ...filters },
-  })),
+  userType: null,
+  currentUser: null,
   setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
+  setUserType: (userType) => set({ userType }),
+  setCurrentUser: (user) => set({ currentUser: user }),
   logout: () => set({
-    userType: null,
-    professional: null,
-    business: null,
     isAuthenticated: false,
+    userType: null,
+    currentUser: null
   }),
   
-  // Job application actions
-  addJobApplication: (application) => {
-    const id = `app-${Date.now()}`;
-    const newApplication: IJobApplication = {
-      ...application,
-      id,
-      appliedAt: new Date().toISOString(),
-      status: 'pending'
-    };
-    
-    set((state) => ({ 
-      jobApplications: [...state.jobApplications, newApplication],
-      jobs: state.jobs.map(job => 
-        job.id === application.jobId 
-          ? { ...job, status: 'applied' } 
-          : job
-      )
-    }));
-    
-    return id;
-  },
+  // Navigation state
+  isSidebarOpen: true,
+  toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+  setSidebarOpen: (isOpen) => set({ isSidebarOpen: isOpen }),
   
-  getJobApplicationsForProfessional: (professionalId) => {
-    return get().jobApplications.filter(app => app.professionalId === professionalId);
-  },
-  
-  hasAppliedToJob: (jobId, professionalId) => {
-    return get().jobApplications.some(
-      app => app.jobId === jobId && app.professionalId === professionalId
-    );
-  }
+  // UI preferences
+  isDarkMode: false,
+  toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
 })); 
-
-// Helper hook for the Professional Dashboard to access required data
-export const useProfessionalData = () => {
-  const { professional, jobs } = useAppStore();
-  
-  // Use the first dummy professional if none is set in the store
-  const activeProfessional = professional || dummyProfessionals[0];
-  
-  // Get certifications and portfolio from the professional
-  const certifications = activeProfessional?.certifications || [];
-  const portfolio = activeProfessional?.portfolio || [];
-  
-  // Use dummy jobs if none are set in the store
-  const availableJobs = jobs.length > 0 ? jobs : dummyJobs;
-  
-  return {
-    professional: activeProfessional,
-    jobs: availableJobs,
-    certifications,
-    portfolio
-  };
-}; 

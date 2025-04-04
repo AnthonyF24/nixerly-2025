@@ -37,43 +37,62 @@ import {
   CalendarClock
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { dummyJobs, dummyProfessionals } from "@/lib/dummy-data";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ColorTheme, businessThemes } from "@/lib/theme-utils";
+import { useCurrentUser, useJobs, useProfessionals } from "@/lib/mock-data-hooks";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const BusinessDashboard = () => {
-  const { business } = useAppStore();
+  const { userType } = useAppStore();
   const [activeTheme, setActiveTheme] = useState<ColorTheme>(businessThemes[0]);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  const { user: business, loading: businessLoading } = useCurrentUser();
+  const { jobs: allJobs, loading: jobsLoading } = useJobs(business?.id);
+  const { professionals: allProfessionals, loading: professionalsLoading } = useProfessionals();
 
-  if (!business) {
+  if (businessLoading || !business) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-32 w-full" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton className="h-80 w-full lg:col-span-2" />
+          <Skeleton className="h-80 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (userType !== "business") {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 bg-muted/30 rounded-lg border border-dashed">
         <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
-        <p className="text-muted-foreground text-lg font-medium">Please complete your business profile to see your dashboard.</p>
-        <Button className="mt-4" asChild>
-          <Link href="/dashboard/profile" tabIndex={0}>Create Profile</Link>
-        </Button>
+        <p className="text-muted-foreground text-lg font-medium">Please switch to a business account to see your dashboard.</p>
       </div>
     );
   }
 
   // Get jobs for this business
-  const businessJobs = dummyJobs.filter(job => job.businessId === business.id);
+  const businessJobs = allJobs || [];
   const activeJobs = businessJobs.filter(job => job.status === "open");
   const draftJobs = businessJobs.filter(job => job.status === "draft");
-  const closedJobs = businessJobs.filter(job => job.status === "closed");
+  const closedJobs = businessJobs.filter(job => job.status === "canceled");
   
   // Get matching professionals based on job skills
   const businessJobSkills = businessJobs.flatMap(job => job.skills);
   const uniqueSkills = [...new Set(businessJobSkills)];
-  const matchingProfessionals = dummyProfessionals
-    .filter(pro => pro.availability)
-    .filter(pro => pro.skills.some(skill => uniqueSkills.includes(skill)))
+  const matchingProfessionals = allProfessionals
+    .filter(pro => pro.availability === 'full_time' || pro.availability === 'part_time')
+    .filter(pro => pro.skills && pro.skills.some(skill => uniqueSkills.includes(skill)))
     .slice(0, 3);
   
   // Profile completion tasks
@@ -81,7 +100,7 @@ export const BusinessDashboard = () => {
     { 
       id: "profile", 
       label: "Complete your business profile", 
-      completed: business.description !== undefined,
+      completed: business.company !== undefined,
       href: "/dashboard/profile",
       icon: Building2
     },
@@ -131,12 +150,12 @@ export const BusinessDashboard = () => {
   ];
 
   // Filter professionals based on search
-  const filteredProfessionals = dummyProfessionals.filter(pro => {
+  const filteredProfessionals = allProfessionals.filter(pro => {
     if (!searchQuery) return false; // Only show results when user searches
     
     const query = searchQuery.toLowerCase();
     const nameMatch = pro.name.toLowerCase().includes(query);
-    const skillsMatch = pro.skills.some(skill => skill.toLowerCase().includes(query));
+    const skillsMatch = pro.skills?.some(skill => skill.toLowerCase().includes(query)) || false;
     const locationMatch = pro.location?.toLowerCase().includes(query) || false;
     
     return nameMatch || skillsMatch || locationMatch;
@@ -150,7 +169,7 @@ export const BusinessDashboard = () => {
   const recentActivity = [
     { 
       type: 'view', 
-      professional: dummyProfessionals[0], 
+      professional: allProfessionals[0], 
       date: '2 hours ago',
       description: 'You viewed this profile'
     },
@@ -162,14 +181,14 @@ export const BusinessDashboard = () => {
     },
     { 
       type: 'application', 
-      professional: dummyProfessionals[1], 
+      professional: allProfessionals[1], 
       job: businessJobs[0],
       date: '2 days ago',
       description: 'New application received'
     },
     { 
       type: 'view', 
-      professional: dummyProfessionals[2], 
+      professional: allProfessionals[2], 
       date: '3 days ago',
       description: 'You viewed this profile'
     },
@@ -389,7 +408,7 @@ export const BusinessDashboard = () => {
           <CardFooter className="bg-gradient-to-r from-slate-50 to-blue-50 border-t border-blue-100 p-4 flex justify-between items-center">
             <div className="text-sm text-gray-600">
               <Users className="h-4 w-4 inline mr-1" />
-              <span>{dummyProfessionals.length} professionals available</span>
+              <span>{allProfessionals.length} professionals available</span>
             </div>
             <Button variant="link" asChild className="text-blue-600 hover:text-blue-800">
               <Link href="/dashboard/find-professionals">
