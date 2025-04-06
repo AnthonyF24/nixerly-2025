@@ -14,6 +14,7 @@ import { useAppStore } from "@/lib/store";
 import { locationsList, industriesList } from "@/lib/dummy-data";
 import { X, Upload, Building, Globe } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import Link from "next/link";
 
 const businessProfileSchema = z.object({
   name: z.string().min(2, {
@@ -330,7 +331,7 @@ export const BusinessProfileForm = () => {
             </CardContent>
           </Card>
           
-          {/* Subscription Section */}
+          {/* Subscription Section with Link */}
           <Card id="subscription" className="border-t-4 border-t-purple-500 hover:shadow-md transition-shadow">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
               <CardTitle>Subscription</CardTitle>
@@ -338,8 +339,7 @@ export const BusinessProfileForm = () => {
                 Access our database of professionals with a subscription
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Current Subscription Status */}
+            <CardContent className="space-y-6 py-6">
               <div className="bg-white p-4 rounded-lg border">
                 <div className="flex justify-between items-center">
                   <div>
@@ -369,188 +369,16 @@ export const BusinessProfileForm = () => {
                 </div>
               </div>
               
-              {/* Subscription Benefits */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="flex items-start gap-4 p-4 rounded-lg bg-blue-50/50 border border-blue-100">
-                  <div className="bg-blue-100 p-3 rounded-full text-blue-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20.2 7.8l-7.7 7.7-4-4-5.7 5.7"/>
-                      <path d="M15 7h6v6"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-blue-800">Subscription Benefits</h3>
-                    <ul className="mt-2 space-y-1 text-sm text-blue-700">
-                      <li className="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mt-0.5 flex-shrink-0">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                        <span>Access to our database of verified professionals</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mt-0.5 flex-shrink-0">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                        <span>Advanced search and filtering options</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mt-0.5 flex-shrink-0">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                        <span>Direct contact with professionals</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mt-0.5 flex-shrink-0">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                        <span>Unlimited job postings</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                
-                <div className="p-4 rounded-lg border">
-                  <h3 className="font-medium mb-2">Subscription Plan</h3>
-                  <div className="flex flex-col space-y-4">
-                    <div className="flex justify-between">
-                      <div>
-                        <p className="font-medium">Business Plan</p>
-                        <p className="text-sm text-gray-500">Access to all features</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-lg">€49</p>
-                        <p className="text-xs text-gray-500">per month</p>
-                      </div>
-                    </div>
-                    
-                    {!business?.verified && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                            Subscribe Now
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                          <DialogHeader>
-                            <DialogTitle>Subscribe to Business Plan</DialogTitle>
-                            <DialogDescription>
-                              Access our database of professional builders and tradespeople
-                            </DialogDescription>
-                          </DialogHeader>
-                          
-                          <div className="py-4">
-                            <div className="mb-4 p-3 bg-gray-50 rounded-md">
-                              <div className="flex justify-between mb-2">
-                                <span className="text-sm">Monthly subscription</span>
-                                <span className="font-medium">€49.00</span>
-                              </div>
-                              <div className="flex justify-between text-sm text-gray-500">
-                                <span>Tax</span>
-                                <span>€9.32</span>
-                              </div>
-                              <Separator className="my-2" />
-                              <div className="flex justify-between font-medium">
-                                <span>Total</span>
-                                <span>€58.32</span>
-                              </div>
-                            </div>
-                            
-                            <div className="space-y-4">
-                              <FormField
-                                control={form.control}
-                                name="cardName"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Name on card</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="John Smith" />
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={form.control}
-                                name="cardNumber"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Card number</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="1234 5678 9012 3456" />
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                  control={form.control}
-                                  name="expiry"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Expiry date</FormLabel>
-                                      <FormControl>
-                                        <Input placeholder="MM/YY" />
-                                      </FormControl>
-                                    </FormItem>
-                                  )}
-                                />
-                                
-                                <FormField
-                                  control={form.control}
-                                  name="cvc"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>CVC</FormLabel>
-                                      <FormControl>
-                                        <Input placeholder="123" />
-                                      </FormControl>
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <DialogFooter>
-                            <Button
-                              onClick={() => {
-                                if (!business) return;
-                                
-                                setBusiness({
-                                  ...business,
-                                  verified: true,
-                                });
-                                
-                                // Show toast or notification
-                                alert("Your subscription has been activated successfully! (In a real app, this would process the payment)");
-                              }}
-                              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                            >
-                              Subscribe for €49/month
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                    
-                    {business?.verified && (
-                      <div className="bg-green-50 border border-green-100 rounded-md p-3 text-center">
-                        <p className="text-green-800 text-sm">
-                          Your subscription is active. You have full access to all features.
-                        </p>
-                      </div>
-                    )}
-                    
-                    <p className="text-xs text-gray-500">
-                      You can cancel your subscription at any time. Your subscription will remain active until the end of the current billing period.
-                    </p>
-                  </div>
-                </div>
+              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-6 rounded-lg border border-indigo-100 dark:border-indigo-800/30 text-center">
+                <h3 className="text-lg font-medium text-indigo-800 dark:text-indigo-300 mb-3">Manage Your Subscription</h3>
+                <p className="text-indigo-700 dark:text-indigo-400 mb-4">
+                  View subscription plans, update billing information, and manage your subscription settings.
+                </p>
+                <Button asChild className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+                  <Link href="/dashboard/subscription">
+                    Go to Subscription Management
+                  </Link>
+                </Button>
               </div>
             </CardContent>
           </Card>

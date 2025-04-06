@@ -143,7 +143,7 @@ export const ProfessionalSearch = () => {
                   asChild
                   className="mt-6 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all"
                 >
-                  <Link href="/dashboard/profile#subscription">
+                  <Link href="/dashboard/subscription">
                     Subscribe Now - €49/month
                   </Link>
                 </Button>
@@ -227,7 +227,7 @@ export const ProfessionalSearch = () => {
                       asChild
                       className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white transition-all"
                     >
-                      <Link href="/dashboard/profile#subscription">
+                      <Link href="/dashboard/subscription">
                         Subscribe Now
                       </Link>
                     </Button>

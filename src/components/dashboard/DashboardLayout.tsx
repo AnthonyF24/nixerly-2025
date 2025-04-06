@@ -30,7 +30,8 @@ import {
   Search,
   Shield,
   Users,
-  Activity
+  Activity,
+  CreditCard
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -110,6 +111,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { href: "/dashboard/profile", label: "Business Profile", icon: <Building2 className="w-5 h-5" /> },
     { href: "/dashboard/post-job", label: "Post a Job", icon: <FilePlus className="w-5 h-5" /> },
     { href: "/dashboard/find-professionals", label: "Find Professionals", icon: <Search className="w-5 h-5" /> },
+    { href: "/dashboard/subscription", label: "Subscription", icon: <CreditCard className="w-5 h-5" /> },
     { href: "/dashboard/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
   
