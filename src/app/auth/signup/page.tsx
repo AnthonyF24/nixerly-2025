@@ -58,7 +58,7 @@ export default function SignupPage() {
   const router = useRouter();
   
   return (
-    <Suspense fallback={<div className="container mx-auto px-4 py-16 flex justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="container mx-auto px-4 flex justify-center items-center h-[calc(100vh-4rem)]">Loading...</div>}>
       <SignupContent initialUserType={userType} setInitialUserType={setUserType} loading={loading} setLoading={setLoading} router={router} />
     </Suspense>
   );
@@ -184,8 +184,8 @@ function SignupContent({
   };
   
   return (
-    <div className="container mx-auto px-4 py-16 flex justify-center">
-      <Card className="w-full max-w-md border-blue-100 shadow-md">
+    <div className="container mx-auto px-4 flex justify-center items-center min-h-[calc(100vh-4rem)] py-8">
+      <Card className="w-full max-w-md border-blue-100 shadow-lg bg-white/90 backdrop-blur-sm">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center text-blue-600">Create an Account</CardTitle>
           <CardDescription className="text-center text-gray-600">

@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppStore } from "@/lib/store";
 import { IJob, IPortfolioItem } from "@/lib/store";
-import { CheckCircle, ChevronRight, Clipboard, SendHorizontal, X, CheckSquare, Upload, Briefcase, FileText, Image as ImageIcon } from "lucide-react";
+import { CheckCircle, ChevronRight, Clipboard, SendHorizontal, X, CheckSquare, Upload, Briefcase, FileText, Image as ImageIcon, Mail, Phone, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -29,9 +29,31 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({ job, i
   const [coverLetter, setCoverLetter] = useState<string>("");
   const [selectedPortfolioItems, setSelectedPortfolioItems] = useState<string[]>([]);
   const [applicationSubmitted, setApplicationSubmitted] = useState<boolean>(false);
+  const [coverLetterError, setCoverLetterError] = useState<string>("");
   
   // Check if user has already applied to this job
   const hasApplied = professional && hasAppliedToJob(job.id, professional.id);
+  
+  // Validate cover letter when it changes
+  useEffect(() => {
+    if (coverLetter.trim()) {
+      setCoverLetterError("");
+    }
+  }, [coverLetter]);
+  
+  const validateCoverLetter = () => {
+    if (!coverLetter.trim()) {
+      setCoverLetterError("Please include a cover note for your application");
+      return false;
+    }
+    
+    if (coverLetter.trim().length < 10) {
+      setCoverLetterError("Your cover note should be at least 10 characters");
+      return false;
+    }
+    
+    return true;
+  };
   
   const handlePortfolioItemToggle = (portfolioId: string) => {
     if (selectedPortfolioItems.includes(portfolioId)) {
@@ -75,12 +97,22 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({ job, i
     // Reset form on close
     setCoverLetter("");
     setSelectedPortfolioItems([]);
+    setCoverLetterError("");
     setStep(1);
     setApplicationSubmitted(false);
     onClose();
   };
   
-  const nextStep = () => setStep(step + 1);
+  const nextStep = () => {
+    if (step === 1) {
+      // Validate cover letter before proceeding
+      if (!validateCoverLetter()) {
+        return;
+      }
+    }
+    setStep(step + 1);
+  };
+  
   const prevStep = () => setStep(step - 1);
 
   return (
@@ -89,13 +121,13 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({ job, i
         {!applicationSubmitted ? (
           <>
             <DialogHeader>
-              <div className="flex justify-between items-center w-full">
+              <div className="flex justify-between items-center w-full flex-wrap">
                 <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                   <Briefcase className="h-5 w-5 text-blue-600" />
                   {step === 1 ? "Apply to Job" : step === 2 ? "Add Portfolio Items" : "Review & Submit"}
                 </DialogTitle>
                 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 mt-2 sm:mt-0">
                   {[1, 2, 3].map((i) => (
                     <div 
                       key={i}
@@ -123,11 +155,22 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({ job, i
                     placeholder="Introduce yourself and explain why you're the perfect fit for this role. Highlight your relevant experience and how your skills match the job requirements."
                     value={coverLetter}
                     onChange={(e) => setCoverLetter(e.target.value)}
-                    className="min-h-32 resize-none border border-gray-200 focus-visible:ring-blue-500"
+                    className={`min-h-32 resize-none border ${
+                      coverLetterError ? 'border-red-300 focus-visible:ring-red-500' : 'border-gray-200 focus-visible:ring-blue-500'
+                    }`}
+                    aria-invalid={!!coverLetterError}
+                    aria-describedby={coverLetterError ? "cover-letter-error" : undefined}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    A personalized message significantly increases your chances of getting noticed
-                  </p>
+                  {coverLetterError ? (
+                    <p id="cover-letter-error" className="text-xs text-red-600 mt-1 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {coverLetterError}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-1">
+                      A personalized message significantly increases your chances of getting noticed
+                    </p>
+                  )}
                 </div>
                 
                 <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
@@ -182,7 +225,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({ job, i
             {step === 2 && (
               <div className="space-y-4 my-4">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <ImageIcon className="h-4 w-4 text-blue-600" />
                       <h3 className="font-medium">Add Portfolio Items</h3>
@@ -264,7 +307,7 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({ job, i
                   )}
                 </div>
                 
-                <div className="flex justify-between gap-2 pt-4">
+                <div className="flex justify-between gap-2 pt-4 flex-wrap sm:flex-nowrap">
                   <Button
                     variant="outline"
                     onClick={prevStep}
@@ -372,6 +415,48 @@ export const JobApplicationModal: React.FC<JobApplicationModalProps> = ({ job, i
                       </div>
                     </div>
                   )}
+                  
+                  <div className="rounded-lg bg-blue-50 p-4 border border-blue-100">
+                    <h4 className="text-sm font-medium text-blue-700 mb-2">Need to discuss first?</h4>
+                    <p className="text-sm text-blue-600 mb-3">
+                      If you'd prefer to contact the employer directly before applying, use these options:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <a
+                        href={`mailto:${job.businessEmail || `info@${job.businessName.toLowerCase().replace(/\s+/g, '')}.com`}`}
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-blue-200 rounded-md text-blue-700 hover:bg-blue-50 transition-colors"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Mail className="h-4 w-4" />
+                        <span className="text-sm font-medium">Email Business</span>
+                      </a>
+                      
+                      {job.businessPhone && (
+                        <a
+                          href={`tel:${job.businessPhone}`}
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-blue-200 rounded-md text-blue-700 hover:bg-blue-50 transition-colors"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Phone className="h-4 w-4" />
+                          <span className="text-sm font-medium">Call Business</span>
+                        </a>
+                      )}
+                      
+                      <a
+                        href={`https://wa.me/${job.businessWhatsapp || '353123456789'}`}
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-green-200 rounded-md text-green-700 hover:bg-green-50 transition-colors"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413A11.815 11.815 0 0012.05 0" />
+                        </svg>
+                        <span className="text-sm font-medium">WhatsApp</span>
+                      </a>
+                    </div>
+                  </div>
                 </div>
                 
                 <DialogFooter className="flex justify-between gap-2 pt-4">

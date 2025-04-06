@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
@@ -16,12 +16,21 @@ import {
 } from '@/components/ui/card';
 import { useAppStore } from '@/lib/store';
 import { dummyProfessionals, dummyBusinesses } from '@/lib/dummy-data';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+
+// Email validation regex
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [formValid, setFormValid] = useState(false);
+  
   const router = useRouter();
   const { toast } = useToast();
   
@@ -33,13 +42,48 @@ export default function LoginPage() {
     setUserType 
   } = useAppStore();
   
+  // Validate form on input change
+  useEffect(() => {
+    // Clear field-specific errors when input changes
+    if (email) setEmailError('');
+    if (password) setPasswordError('');
+    
+    // Validate form
+    setFormValid(email.trim() !== '' && EMAIL_REGEX.test(email) && password.trim() !== '');
+  }, [email, password]);
+  
+  const validateEmail = () => {
+    if (!email.trim()) {
+      setEmailError('Email is required');
+      return false;
+    }
+    if (!EMAIL_REGEX.test(email)) {
+      setEmailError('Please enter a valid email address');
+      return false;
+    }
+    return true;
+  };
+  
+  const validatePassword = () => {
+    if (!password.trim()) {
+      setPasswordError('Password is required');
+      return false;
+    }
+    return true;
+  };
+  
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setEmailError('');
+    setPasswordError('');
     
-    // Basic validation
-    if (!email || !password) {
-      setError('Email and password are required');
+    // Validate individual fields
+    const isEmailValid = validateEmail();
+    const isPasswordValid = validatePassword();
+    
+    // If any validation fails, return early
+    if (!isEmailValid || !isPasswordValid) {
       return;
     }
     
@@ -80,7 +124,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       } else {
         // Login failed
-        setError('Invalid email or password');
+        setError('Invalid email or password. For the demo, use the email of any professional or business with password "password".');
       }
     } catch (err) {
       setError('An error occurred. Please try again.');
@@ -90,9 +134,13 @@ export default function LoginPage() {
     }
   };
   
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+  
   return (
-    <div className="container mx-auto px-4 py-16 flex justify-center">
-      <Card className="w-full max-w-md border-blue-100 shadow-md">
+    <div className="container mx-auto px-4 flex justify-center items-center min-h-[calc(100vh-4rem)] py-8">
+      <Card className="w-full max-w-md border-blue-100 shadow-lg bg-white/90 backdrop-blur-sm">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center text-blue-600">Login to Nixerly</CardTitle>
           <CardDescription className="text-center text-gray-600">
@@ -102,8 +150,9 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-md">
-                {error}
+              <div className="p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-md flex items-start">
+                <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                <span>{error}</span>
               </div>
             )}
             <div className="space-y-2">
@@ -115,9 +164,20 @@ export default function LoginPage() {
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onBlur={validateEmail}
                 placeholder="name@example.com" 
-                className="border-blue-200 focus:border-blue-400 focus-visible:ring-blue-400" 
+                className={`border-blue-200 focus:border-blue-400 focus-visible:ring-blue-400 ${
+                  emailError ? 'border-red-300 focus:border-red-400 focus-visible:ring-red-400' : ''
+                }`}
+                aria-invalid={!!emailError}
+                aria-describedby={emailError ? "email-error" : undefined}
               />
+              {emailError && (
+                <p id="email-error" className="text-sm text-red-600 mt-1 flex items-center">
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  {emailError}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -132,18 +192,39 @@ export default function LoginPage() {
                   Forgot password?
                 </Link>
               </div>
-              <Input 
-                id="password" 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••" 
-                className="border-blue-200 focus:border-blue-400 focus-visible:ring-blue-400" 
-              />
+              <div className="relative">
+                <Input 
+                  id="password" 
+                  type={showPassword ? "text" : "password"} 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={validatePassword}
+                  placeholder="••••••••" 
+                  className={`border-blue-200 focus:border-blue-400 focus-visible:ring-blue-400 pr-10 ${
+                    passwordError ? 'border-red-300 focus:border-red-400 focus-visible:ring-red-400' : ''
+                  }`}
+                  aria-invalid={!!passwordError}
+                  aria-describedby={passwordError ? "password-error" : undefined}
+                />
+                <button 
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {passwordError && (
+                <p id="password-error" className="text-sm text-red-600 mt-1 flex items-center">
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  {passwordError}
+                </p>
+              )}
             </div>
             <Button 
               type="submit" 
-              disabled={loading}
+              disabled={loading || !formValid}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm"
             >
               {loading ? 'Logging in...' : 'Login'}
@@ -159,7 +240,7 @@ export default function LoginPage() {
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Button 
               type="button"
               onClick={() => toast({
@@ -193,8 +274,8 @@ export default function LoginPage() {
             </Button>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-600">
+        <CardFooter className="flex justify-center flex-wrap">
+          <p className="text-sm text-gray-600 text-center">
             Don't have an account?{" "}
             <Link href="/auth/signup" className="text-blue-600 hover:text-blue-500 font-medium" tabIndex={0}>
               Sign up
