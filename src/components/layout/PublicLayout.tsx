@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dropdown, DropdownContent, DropdownItem, DropdownMenu, DropdownSeparator, DropdownTrigger } from "@/components/ui/dropdown-menu";
 import { ChevronDown, User, LogOut, Settings } from "lucide-react";
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 interface PublicLayoutProps {
   children: ReactNode;
@@ -38,7 +39,7 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
           </nav>
           
           <div className="flex items-center gap-4">
-            {isAuthenticated ? (
+            <SignedIn>
               <>
                 <Button variant="outline" asChild>
                   <Link href="/dashboard">
@@ -46,53 +47,21 @@ export const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
                   </Link>
                 </Button>
                 
-                <Dropdown>
-                  <DropdownTrigger asChild>
-                    <Button variant="ghost" className="p-0 h-8 w-8 rounded-full" aria-label="Account menu">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage 
-                          src={userType === "professional" ? "/avatars/business-b3.jpg" : "/avatars/business-b1.jpg"} 
-                          alt={userName || ""} 
-                        />
-                        <AvatarFallback>{userInitials}</AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownTrigger>
-                  <DropdownContent align="end">
-                    <DropdownItem asChild>
-                      <Link href="/dashboard/profile">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </Link>
-                    </DropdownItem>
-                    <DropdownItem asChild>
-                      <Link href="/dashboard/settings">
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Settings</span>
-                      </Link>
-                    </DropdownItem>
-                    <DropdownSeparator />
-                    <DropdownItem onClick={() => logout()}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Logout</span>
-                    </DropdownItem>
-                  </DropdownContent>
-                </Dropdown>
+                <UserButton afterSignOutUrl="/" />
               </>
-            ) : (
-              <>
-                <Button variant="ghost" asChild>
-                  <Link href="/auth/login">
-                    Log in
-                  </Link>
+            </SignedIn>
+            <SignedOut>
+              <SignInButton mode="redirect" path="/auth/login">
+                <Button variant="ghost">
+                  Log in
                 </Button>
-                <Button asChild>
-                  <Link href="/auth/register">
-                    Sign up
-                  </Link>
+              </SignInButton>
+              <SignUpButton mode="redirect" path="/auth/register">
+                <Button>
+                  Sign up
                 </Button>
-              </>
-            )}
+              </SignUpButton>
+            </SignedOut>
           </div>
         </div>
       </header>

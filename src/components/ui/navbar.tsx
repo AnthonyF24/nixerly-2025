@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/lib/store';
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -69,12 +70,21 @@ const Navbar = () => {
           
           <div className="hidden md:block">
             <div className="flex items-center space-x-3">
-              <Button variant="outline" size="sm" className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300" asChild>
-                <Link href="/auth/login">Login</Link>
-              </Button>
-              <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm" asChild>
-                <Link href="/auth/signup">Sign Up</Link>
-              </Button>
+              <SignedIn>
+                <UserButton afterSignOutUrl="/" />
+              </SignedIn>
+              <SignedOut>
+                <SignInButton mode="redirect" path="/auth/login">
+                  <Button variant="outline" size="sm" className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300">
+                    Login
+                  </Button>
+                </SignInButton>
+                <SignUpButton mode="redirect" path="/auth/signup">
+                  <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm">
+                    Sign Up
+                  </Button>
+                </SignUpButton>
+              </SignedOut>
             </div>
           </div>
           
@@ -156,12 +166,21 @@ const Navbar = () => {
         </div>
         <div className="pt-4 pb-3 border-t border-gray-200">
           <div className="flex items-center space-x-3">
-            <Button variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300" asChild>
-              <Link href="/auth/login">Login</Link>
-            </Button>
-            <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm" asChild>
-              <Link href="/auth/signup">Sign Up</Link>
-            </Button>
+            <SignedIn>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
+            <SignedOut>
+              <SignInButton mode="redirect" path="/auth/login">
+                <Button variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300">
+                  Login
+                </Button>
+              </SignInButton>
+              <SignUpButton mode="redirect" path="/auth/signup">
+                <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm">
+                  Sign Up
+                </Button>
+              </SignUpButton>
+            </SignedOut>
           </div>
         </div>
       </div>

@@ -45,6 +45,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useCurrentUser, useUnreadMessages } from "@/lib/mock-data-hooks";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
+import useAccountType from "@/lib/hooks/useAccountType";
+import { useUser } from "@clerk/nextjs";
 
 // Define notification type interface
 interface NotificationItem {
@@ -75,6 +77,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const pathname = usePathname();
   
+  // Get Clerk user data
+  const { user: clerkUser } = useUser();
+  const { accountType, businessName } = useAccountType();
+  
   // Get current user data from mock data hooks
   const { user, loading: userLoading } = useCurrentUser();
   
@@ -89,9 +95,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   // Get unread messages for current user
   const { unreadCount: unreadMessages } = useUnreadMessages(user?.id || '');
   
-  const userName = currentUser?.name || '';
-  const userEmail = currentUser?.email || '';
-  const userInitials = userName ? userName.split(" ").map(n => n[0]).join("") : "U";
+  // Use business name from Clerk metadata if available, otherwise fall back to mock data
+  const displayName = businessName || currentUser?.name || '';
+  const userEmail = clerkUser?.primaryEmailAddress?.emailAddress || currentUser?.email || '';
+  
+  // Get user initials (either from business name or user name)
+  const userInitials = displayName 
+    ? displayName.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2) 
+    : "U";
   
   // Check if business user has paid subscription - note that verified is stored in business/professional objects, not the User
   const hasBusinessPaidSubscription = isAuthenticated && userType === 'business' && useAppStore.getState().business?.verified;
@@ -341,12 +352,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <Avatar className="h-11 w-11 border-2 border-blue-200">
                   <AvatarImage 
                     src={userType === "professional" ? "/avatars/business-b2.jpg" : "/avatars/business-b1.jpg"} 
-                    alt={userName || ""} 
+                    alt={displayName || ""} 
                   />
                   <AvatarFallback className="bg-blue-100 text-blue-700">{userInitials}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm truncate">{userName}</h3>
+                  <h3 className="font-medium text-sm truncate">{displayName}</h3>
                   <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
                 </div>
               </div>
@@ -516,12 +527,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     <Avatar className="h-8 w-8 shrink-0">
                       <AvatarImage 
                         src={userType === "professional" ? "/avatars/business-b2.jpg" : "/avatars/business-b1.jpg"} 
-                        alt={userName || ""} 
+                        alt={displayName || ""} 
                       />
                       <AvatarFallback>{userInitials}</AvatarFallback>
                     </Avatar>
                     <div className="hidden sm:flex flex-col items-start leading-none">
-                      <span className="text-sm font-medium">{userName}</span>
+                      <span className="text-sm font-medium">{displayName}</span>
                       <span className="text-xs text-muted-foreground">{userType}</span>
                     </div>
                     <ChevronDown className="h-4 w-4 hidden sm:block text-muted-foreground" />

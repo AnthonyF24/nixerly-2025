@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
 import { usePathname } from "next/navigation";
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -128,7 +129,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             
             <div className="hidden md:block">
               <div className="flex items-center space-x-4">
-                {isAuthenticated ? (
+                <SignedIn>
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -137,16 +138,20 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   >
                     Logout
                   </Button>
-                ) : (
-                  <>
-                    <Button variant="outline" size="sm" className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300 shadow-sm transition-all duration-300" asChild>
-                      <Link href="/auth/login">Login</Link>
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
+                <SignedOut>
+                  <SignInButton mode="redirect" path="/auth/login">
+                    <Button variant="outline" size="sm" className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300 shadow-sm transition-all duration-300">
+                      Login
                     </Button>
-                    <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm hover:shadow-md transition-all duration-300" asChild>
-                      <Link href="/auth/signup">Sign Up</Link>
+                  </SignInButton>
+                  <SignUpButton mode="redirect" path="/auth/signup">
+                    <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm hover:shadow-md transition-all duration-300">
+                      Sign Up
                     </Button>
-                  </>
-                )}
+                  </SignUpButton>
+                </SignedOut>
               </div>
             </div>
             
@@ -245,7 +250,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           
           <div className="pt-4 pb-3 border-t border-gray-200 px-4">
             <div className="flex items-center space-x-3">
-              {isAuthenticated ? (
+              <SignedIn>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -257,16 +262,20 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 >
                   Logout
                 </Button>
-              ) : (
-                <>
-                  <Button variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300 shadow-sm transition-all duration-300" asChild>
-                    <Link href="/auth/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
+                <UserButton afterSignOutUrl="/" />
+              </SignedIn>
+              <SignedOut>
+                <SignInButton mode="redirect" path="/auth/login">
+                  <Button variant="outline" size="sm" className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300 shadow-sm transition-all duration-300">
+                    Login
                   </Button>
-                  <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm hover:shadow-md transition-all duration-300" asChild>
-                    <Link href="/auth/signup" onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
+                </SignInButton>
+                <SignUpButton mode="redirect" path="/auth/signup">
+                  <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm hover:shadow-md transition-all duration-300">
+                    Sign Up
                   </Button>
-                </>
-              )}
+                </SignUpButton>
+              </SignedOut>
             </div>
           </div>
         </div>

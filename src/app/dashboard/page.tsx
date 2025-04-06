@@ -9,6 +9,8 @@ import { useSearchParams } from "next/navigation";
 import { useCurrentUser } from "@/lib/mock-data-hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { dummyProfessionals, dummyBusinesses } from "@/lib/dummy-data";
+import useAccountType from "@/lib/hooks/useAccountType";
+import { useUser } from "@clerk/nextjs";
 
 const DashboardPage = () => {
   return (
@@ -42,32 +44,56 @@ const DashboardContent = () => {
   const searchParams = useSearchParams();
   const userTypeParam = searchParams.get('type');
   const { user, loading } = useCurrentUser();
+  const { user: clerkUser, isLoaded: isClerkUserLoaded } = useUser();
+  const { accountType, isLoading: isAccountTypeLoading } = useAccountType();
   
-  // For demo purposes, set user type based on mock data or URL params, but respect existing user type
+  // For demo purposes, set user type based on Clerk metadata, URL params or mock data
   useEffect(() => {
     // Set authenticated state
     setIsAuthenticated(true);
     
-    // If no user type is set, check URL parameter or user role from mock data
+    // If no user type is set, check in this order:
+    // 1. Clerk metadata accountType
+    // 2. URL parameter
+    // 3. Mock user's role
     if (userType === null) {
-      if (loading || !user) return;
+      if (loading || !user || isAccountTypeLoading) return;
       
-      // Use URL parameter if provided, otherwise use mock user's role
-      const typeToUse = userTypeParam || user.role;
+      // Priority 1: Clerk metadata
+      if (accountType) {
+        setUserType(accountType);
+      } 
+      // Priority 2: URL parameter
+      else if (userTypeParam && (userTypeParam === "professional" || userTypeParam === "business")) {
+        setUserType(userTypeParam);
+      } 
+      // Priority 3: Mock user data
+      else if (user.role) {
+        setUserType(user.role as "professional" | "business");
+      }
       
-      if (typeToUse === 'professional') {
-        setUserType("professional");
-        // Set professional data
+      // Set user data for the appropriate type
+      if (userType === "professional" || accountType === "professional" || 
+          userTypeParam === "professional" || user.role === "professional") {
         setProfessional(dummyProfessionals[0]);
       } else {
-        setUserType("business");
-        // Set business data
         setBusiness(dummyBusinesses[0]);
       }
     }
-  }, [loading, user, userTypeParam, setUserType, setIsAuthenticated, userType, setProfessional, setBusiness]);
+  }, [
+    loading, 
+    user, 
+    userTypeParam, 
+    setUserType, 
+    setIsAuthenticated, 
+    userType, 
+    setProfessional, 
+    setBusiness, 
+    accountType, 
+    isAccountTypeLoading
+  ]);
 
-  if (loading || !user) {
+  if (loading || !user || isAccountTypeLoading) {
     return (
       <DashboardLayout>
         <div className="p-6 space-y-4">
@@ -83,9 +109,12 @@ const DashboardContent = () => {
     );
   }
 
+  // If account type exists in Clerk metadata, use that, otherwise use app store's userType
+  const effectiveUserType = accountType || userType;
+
   return (
     <DashboardLayout>
-      {userType === "professional" ? <ProfessionalDashboard /> : <BusinessDashboard />}
+      {effectiveUserType === "professional" ? <ProfessionalDashboard /> : <BusinessDashboard />}
     </DashboardLayout>
   );
 };
