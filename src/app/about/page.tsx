@@ -11,7 +11,7 @@ export default function AboutPage() {
     name: "Anthony Fildes",
     title: "Founder",
     bio: "Visionary entrepreneur with a passion for transforming the construction industry in Ireland. Anthony combines deep expertise in technology and business to create innovative solutions that connect construction professionals with opportunities.",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop"
+    image: "/team/founder.jpg"
   };
 
   const companyValues = [
@@ -157,6 +157,15 @@ export default function AboutPage() {
             <div className="bg-white rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 max-w-4xl transform hover:scale-[1.01]">
               <div className="p-10">
                 <div className="flex flex-col items-center">
+                  <div className="relative w-[550px] h-72 md:w-[650px] md:h-80 mb-8 overflow-hidden rounded-xl shadow-lg">
+                    <Image 
+                      src={founder.image}
+                      alt={`${founder.name} - ${founder.title}`}
+                      fill
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
                   <div className="text-center mb-6">
                     <h3 className="text-3xl font-bold text-gray-900 mb-2">{founder.name}</h3>
                     <p className="text-blue-700 font-medium text-lg">{founder.title}</p>
